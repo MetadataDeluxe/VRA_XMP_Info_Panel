@@ -3,6 +3,11 @@ VRA_XMP_Info_Panel
 
 A custom info panel for using VRA Core in Adobe CS4 and above
 
+The file info panel is Flash-based
+Development platform: Adobe Flash Builder 4.5 
+Compiler: Flex 3.6 SDK
+XMP SDK: CS6 (fileinfo_fb4x_1.2.0)
+
 About
 The VRA panel is meant to facilitate sharing descriptive metadata between a user and a chosen recipient, such as a database curator, an image sharing service, or a colleague.
  
