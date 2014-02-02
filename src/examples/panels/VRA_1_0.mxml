@@ -1,0 +1,2281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+-->
+<fi:XMPForm
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fi="com.adobe.xmp.components.*" width="100%"
+	label="VRA 1.0" currentState="List" xmpWrite="xmpWriteHandler(event)" xmpRead="xmpReadHandler(event)">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.adobe.xmp.IXMPAccess;
+			import com.adobe.xmp.IXMPComponent;
+			import com.adobe.xmp.IXMPConst;
+			import com.adobe.xmp.IXMPProperty;
+			import com.adobe.xmp.XMPDateTime;
+			import com.adobe.xmp.XMPProperty;
+			import com.adobe.xmp.components.XMPComboBox;
+			import com.adobe.xmp.components.XMPText;
+			import com.adobe.xmp.components.XMPTextAreaMRU;
+			import com.adobe.xmp.events.XMPEvent;
+			import com.adobe.xmp.utils.MRUManager;	
+			import mx.collections.ArrayCollection;
+			import mx.containers.Form;
+			import mx.controls.Alert;
+			import mx.controls.ComboBox;
+			import mx.controls.DateField;
+			import mx.controls.Text;
+			import mx.controls.ToolTip;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.ItemClickEvent;
+			import mx.events.ResizeEvent;
+			import mx.events.StateChangeEvent;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.managers.ToolTipManager;
+			import mx.states.AddChild;
+			import mx.states.RemoveChild;
+			import mx.states.State;	
+			
+			// Version and date
+			[Bindable]
+			private var _version:String = "1.0";
+			[Bindable]
+			private var _codeDate:String = "2014-01-16";
+			// Customized view label text
+			[Bindable]
+			private var customizeAlertTrue:String = "custom view, some fields are hidden";
+			[Bindable]
+			private var customizeAlertFalse:String = "all fields are visible";
+			// View state tool tips
+			[Bindable]
+			private var _listStateTT:String = "List - scrolling vertical list of fields";
+			[Bindable]
+			private var _accordionStateTT:String = "Accordion - one section visible at a time";
+			[Bindable]
+			private var _sideBySideStateTT:String = "Side-by-side - two columns of fields";
+			[Bindable]
+			// Work properties tool tips			
+			[Bindable]
+			private var _workSectionLabelTT:String = "Creative artwork, object or performance shown in the image/photo.";		
+			private var _workAgentLabelTT:String = "Name of the individual, group of individuals, corporate body, cultural group, or other entity that contributed to creating, designing, producing, manufacturing, or altering the work. May include biographical information (nationality and birth and death dates) and roles when relevant. Multiple creators should be separated by a semi-colon.";
+			[Bindable]
+			private var _workAgentTT:String = "examples:\n Jasper Francis Cropsey (American painter, 1823-1900)\n Josef Hoffmann, designer; Wiener Werkstätte, manufacturer\n Cézanne, Paul (French painter, 1839-1906)\n attributed to Pierre Gouthière (French, born 1732)";
+			[Bindable]
+			private var _workTitleLabelTT:String = "Identifying phrase, or name, given to a work of art or architecture. If no known title is available, a descriptive title constructed by the cataloger should be used.";
+			[Bindable]
+			private var _workTitleTT:String = "examples:\n Case Study House No. 21\n Landscape with Storm\n Great Sphinx\n Wooden Armchair";
+			[Bindable]
+			private var _ViewLabelTT:String = "Describes the specific view of the depicted work.";
+			[Bindable]
+			private var _ViewTT:String = "examples:\n South facade\n Upper right corner\n Detail of mirror on back wall";
+			[Bindable]
+			private var _workVraDateLabelTT:String = "Date or range of dates associated with the creation, design, production, presentation, performance, construction, or alteration, etc., of the work or its components.";
+			[Bindable]
+			private var _workVraDateTT:String = "examples:\n 2007\n ca. 1945 or 1534-1536\n additions in 1650 and 1770\n restoration in 1980";
+			[Bindable]
+			private var _workStylePeriodLabelTT:String = "The named, defined style, historical or artistic period, movement, group, or school whose characteristics are represented in the work.";
+			[Bindable]
+			private var _workStylePeriodTT:String = "examples:\n Modernist\n Impressionist";
+			[Bindable]
+			private var _workCultureLabelTT:String = "Name of the culture, people, or nationality from which the work originated.";
+			[Bindable]
+			private var _workCultureTT:String = "examples:\n Native American\n Mexican\n French";
+			[Bindable]
+			private var _workWorkTypeLabelTT:String = "Identifies the kind of work or works being described. It typically refers to a work\'s physical form, function, or medium.";
+			[Bindable]
+			private var _workWorkTypeTT:String = "examples:\n sculpture\n altarpiece\n cathedral\n storage jar\n performance";
+			[Bindable]
+			private var _workMaterialLabelTT:String = "Substance of which a work is composed.";
+			[Bindable]
+			private var _workMaterialTT:String = "examples:\n oil on canvas\n wooden frame, adobe, with red tile roof";
+			[Bindable]
+			private var _workTechniqueLabelTT:String = "Production or manufacturing processes, techniques, and methods incorporated in the fabrication or alteration of the work.";
+			[Bindable]
+			private var _workTechniqueTT:String = "examples:\n carving\n block printing\n fresco painting";
+			[Bindable]
+			private var _workMeasurementsLabelTT:String = "Physical size, shape, scale, or dimensions. Dimensions may include such measurements as volume, weight, or area.";
+			[Bindable]
+			private var _workMeasurementsTT:String = "examples:\n 46.5 x 38 cm\n 183 x 187 inches (overall)\n 105 cm (width of central panel); 39 cm (width of each side panel";
+			[Bindable]
+			private var _workLocLabelTT:String = "The geographic location and/or name of the repository, building, site, or other entity whose boundaries include the Work";
+			[Bindable]
+			private var _workLocRepLabelTT:String = "The name and geographic location of the repository (museum, library, archive, church, public or private building, etc.) that is currently responsible for the work.";
+			[Bindable]
+			private var _workLocRepTT:String = "examples:\n  Bibliothèque nationale (France)\n  National Trust (Great Britain)\n  National Gallery of Art, Washington, DC, Ailsa Mellon Bruce Fund, 1967.4.1";
+			[Bindable]
+			private var _workLocSiteLabelTT:String = "For monumental or architectural works, record the geographic location where the work is found. For moveable works, record location information in the Museum/Repository field.";
+			[Bindable]
+			private var _workLocSiteTT:String = "examples:\n  Paris, France\n  San Francesco (Church: Assisi, Italy); GEO:43.074722, 12.605556\n  Stonehenge (Wiltshire, England, United Kingdom)";
+			[Bindable]
+			private var _workLocCreatLabelTT:String = "The geographic location where the work was created.";
+			[Bindable]
+			private var _workLocCreatTT:String = "examples:\n Athens, Greece\n Charlton, Massachusetts, United States\n Heliopolis, Egypt)";
+			[Bindable]
+			private var _workLocDiscLabelTT:String = "The geographic location where the work was discovered.";
+			[Bindable]
+			private var _workLocDiscTT:String = "examples:\n  Sutton Hoo estate (Woodbridge, Suffolk, England, United Kingdom)\n  Mausoleum complex of Qin Shi Huangdi, Pit 1 (Lintong, Shaanxi Province, China)\n  GEO:34° 23' 5.71? N, 109° 16' 23.19? E";
+			[Bindable]
+			private var _workLocExhibLabelTT:String = "The place where a work, or a collection of works, was exhibited.";
+			[Bindable]
+			private var _workLocExhibTT:String = "examples:\n  Museum of Modern Art (New York, New York, United States)\n  Hofgarten Arcade of the Municipal Archeological Institute (Munich, Germany)";
+			[Bindable]
+			private var _workLocInstalLabelTT:String = "The location where a work was installed.";
+			[Bindable]
+			private var _workLocInstalTT:String = "examples:\n  Daley Plaza (Chicago, Illinois, United States)\n  Federal Plaza (New York, New York, United States)";
+			[Bindable]
+			private var _workLocPerfLabelTT:String = "The location where the work was performed or presented.";
+			[Bindable]
+			private var _workLocPerfTT:String = "examples:\n  Carnegie Recital Hall (New York, New York, United States)\n  Theatre Le Ranelagh (Paris, France)";
+			[Bindable]
+			private var _workLocOtherLabelTT:String = "Other location(s) associated with the work.";
+			[Bindable]
+			private var _workLocOtherTT:String = "examples:\n  Athens (Greece)\n  Pergamon (Turkey)\n  Bodrum (Turkey)";
+			[Bindable]
+			private var _workLocNotesLabelTT:String = "Additional location information.";						
+			[Bindable]
+			private var _workRefidLabelTT:String = "A unique numeric or alphanumeric code used to identify the Work.";
+			[Bindable]
+			private var _workRefidTT:String = "examples:\n  94001326  NRIS (National Register Information System)\n\n  http://hdl.handle.net/10934/RM0001.COLLECT.358967";
+			[Bindable]
+			private var _workRightsStatementLabelTT:String = "Information about rights management; may include copyright and other intellectual property statements required for use.";
+			[Bindable]
+			private var _workRightsStatementTT:String = "examples:\n  Public domain\n  Copyright 2005 Christo and Jeanne-Claude\n  All rights reserved Gilbert and George";
+			[Bindable]
+			private var _workDescriptionLabelTT:String = "A free-text note about the work, including comments, description, or interpretation, that gives additional information not recorded in other fields.";
+			[Bindable]
+			private var _workDescriptionTT:String = "example:\n Monumental sculpture, designed in England, cast at a foundry in Germany. Cast in bronze in 50 sections.";
+			[Bindable]
+			private var _workSubjectLabelTT:String = "Terms that identify, describe, and/or interpret what is depicted in and by a work.";
+			[Bindable]
+			private var _workSubjectTT:String = "example:\n allegorical; architectural interiors; cycles or series";
+			[Bindable]
+			private var _workInscriptionLabelTT:String = "All marks or written words added to the object at the time of production or in its subsequent history.";
+			[Bindable]
+			private var _workInscriptionTT:String = "example:\n stamped under the back seat rail: IAVISSE [for Jean Avisse]";		
+			[Bindable]
+			private var _workRelationLabelTT:String = "Works, Images or Collections related to the work being described, and a description of the relationship.";
+			[Bindable]
+			private var _workRelationTT:String = "examples:\n Part Of The Lincoln Memorial\n From the Altar of Zeus\n Study for Madonna and Child";
+			[Bindable]
+			private var _workTextRefLabelTT:String = "Name of a related textual reference and any type of unique identifier that text assigns to the work.";
+			[Bindable]
+			private var _workTextRefTT:String = "example:\n Beazley, Attic Red-Figure Vase-Painters (1984), p. 5, no. 6, Vase number 200020, http://www.beazley.ox.ac.uk";
+			[Bindable]
+			private var _workSourceLabelTT:String = "A reference to the source of the information recorded about the work.";		
+			[Bindable]
+			private var _workSourceTT:String = "examples:\n  Sennott, R S. Encyclopedia of 20th Century Architecture. New York: Fitzroy Dearborn, 2004\n  J. Paul Getty Museum online\n  Grove Art Online";			
+			[Bindable]
+			private var _customLabelTT:String = "User defined field\n Be consistent\n Coordinate with data recipient(s)";
+			[Bindable]
+			private var _customLabelDataTT:String = "User defined field";
+			[Bindable]
+			private var _custom1LabelTT:String = "examples:\n Inscription\n Larger entity\n Classification";
+			[Bindable]
+			private var _custom2LabelTT:String = "examples:\n State/Edition\n Provenance\n WorkRecord ID";
+			// Image properties tooltips
+			[Bindable]
+			private var _imageSectionLabelTT:String = "A visual surrogate of an Artwork/Object";
+			[Bindable]
+			private var _imageDateLabelTT:String = "The date on which the image was first created. YYYY-MM-DD.";
+			[Bindable]
+			private var _imageDateTT:String = "examples:\n  1963\n  2010-06-25";
+			[Bindable]
+			private var _imageCreatorLabelTT:String = "Name of the person who created the content of this image. In cases where the photographer should not be identified, the name of a company or organization is appropriate.";
+			[Bindable]
+			private var _imageCreatorTT:String = "examples:\n  David Riecks\n  David Kennard\n  Jesse Henderson";
+			[Bindable]
+			private var _imageSourceLabelTT:String = "Identification of the agency, individual, repository, or publication from which the image or other resource was obtained, including a bibliographic citation in the case of copy photography.";
+			[Bindable]
+			private var _imageSourceTT:String = "example (publication):\n  Gascoigne, Bamber, The Great Moghuls, New York: Harper and Row, 1971, ISBN-10: 0060114673, plate iix\nexample (website):\n  Metropolitan Museum of Art, http://www.metmuseum.org/explore/Unicorn/unicorn_cloisters.htm";
+			[Bindable]
+			private var _imageRightsSecLabelLabelTT:String = "Information about rights management; may include copyright and other intellectual property statements required for use.";
+			[Bindable]
+			private var _xmpRightsLabelTT:String = "Choose either Copyrighted, Public Domain, or Unknown.";
+			[Bindable]
+			private var _xmpRightsTT:String = "Unkown = no Rights Type is recorded.";
+			[Bindable]
+			private var _CClicenseLabelTT:String = "Choose a Creative Commons license type.";
+			[Bindable]
+			private var _imageUsageTermsLabelTT:String = "Free-text licensing parameters/instructions on how this photograph can be legally used.";
+			[Bindable]
+			private var _imageUsageTermsTT:String = "example:\n  Any commercial use or re-publication is strictly prohibited.\n  For educational use only.\n  This work is licensed to the public under Creative Commons Attribution 3.0 Unported License.";
+			[Bindable]
+			private var _imageRightsStatementLabelTT:String = "Contains any necessary copyright notice for assigning the intellectual property for this item and should identify the current rights holder for the item.";
+			[Bindable]
+			private var _imageRightsStatementTT:String = "example:\n  © The J. Paul Getty Trust. All Rights Reserved.\n  © Gertrude Barrer Estate. Photo Credit: Kari R. Smith";
+			[Bindable]
+			private var _imageRightsURLLabelTT:String = "World wide web address for the licensor's copyright notice.";
+			[Bindable]
+			private var _imageRightsURLTT:String = "example:\n  http://www.getty.edu/legal/copyright.html";
+			[Bindable]
+			private var _workCustom3LabelTT:String = "examples:\n Original format\n Related Image\n Local ID";
+			[Bindable]
+			private var _workCustom4LabelTT:String = "examples:\n Event\n Description\n Image Subjects";
+			[Bindable]
+			// Admin properties tooltips
+			private var _adminSectionLabelTT:String = "Information used for project oversight and tracking.";
+			[Bindable]
+			private var _adminCollLabelTT:String = "A name or short phrase that identifies the resource as a member of a user-defined collection. This could be an institutional or a personal collection.";
+			[Bindable]
+			private var _adminCollTT:String = "examples:\n  Virginia Tech\n  Department of Architecture UC Berkeley\n  Roger Keesing Collection\n  Scripps Institution of Oceanography Library Archives";
+			[Bindable]
+			private var _catalogerLabelTT:String = "Identifier or the name of the person involved in writing, editing or correcting the description of the image content.";
+			[Bindable]
+			private var _catalogerTT:String = "examples:\n  Steve Tatum\n  Sheryl Frisch\n  karismit";
+			[Bindable]
+			private var _orderIDLabelTT:String = "Identifier of a batch or other production unit for the purpose of improved workflow handling. This is a user created identifier related to the job for which the item is supplied.";
+			[Bindable]
+			private var _orderIDTT:String = "examples:\n  UCSD00082\n  order0924\n  Manning Fall 2010";
+			[Bindable]
+			private var _workCustom5LabelTT:String = "examples:\n Requestor\n Order ID\n Status";
+			[Bindable]
+			private var _workCustom6LabelTT:String = "examples:\n Collection\n Relation\n Exhibition";
+			[Bindable]
+			//Summary properties tooltips
+			[Bindable]
+			private var _shareableMetadataTT:String = "Highly shareable metadata - widely used by file browsers, photo applications and web services.";
+			[Bindable]
+			private var _summarySectionLabelTT:String = "'Display' information intended for a general audience using common applications, typically a combination of the detailed fields above.";
+			[Bindable]
+			private var _dcTitleLabelTT:String = "Dublin Core Title\n Definition is open to different uses. In the context of photos of artworks it would often be the same as the Work Title and Image view.";
+			[Bindable]
+			private var _dcTitleTT:String = "example:\n  Mona Lisa; smile";
+			[Bindable]
+			private var _keywordsLabelTT:String = "Keywords to express the subject or other user defined tag of the image and its contents.";
+			[Bindable]
+			private var _keywordsTT:String = "example:\n  architecture; dwellings; Case Study houses";
+			[Bindable]
+			private var _captionLabelTT:String = "A succinct, free text description of the image and its contents.  Explains the What, Who, When, and Where of both the image and the work(s) depicted.";
+			[Bindable]
+			private var _captionTT:String = "example of a complete caption:\n  Vincent van Gogh (Dutch, 1853-1890); Cypresses; 1889; oil on canvas; 93.4 x 74 cm (36 3/4 x 29 1/8 inches); Metropolitan Museum of Art (New York, New York, USA); Rogers Fund, 1949; 49.30";
+			[Bindable]
+			private var _allFillButtonTT:String = "Auto-fill Title, Description/Caption, and Keywords";
+			[Bindable]
+			private var _titleAppendFillButtonTT:String = "append with:\n  VRA Title; Image View Description";
+			[Bindable]
+			private var _keywordsAppendFillButtonTT:String = "append with:\n  VRA Subject; Style/Period; Culture; Work Type; Technique";
+			[Bindable]
+			private var _captionFillAppendButtonTT:String = "append with:\n  VRA Creator; Title; View; Date; Work Type; Materials; Measurements; Repository; Location; Inventory Number; Rights";
+			
+			[Bindable]
+			private var typesAccordionIndex:int;
+			[Bindable]
+			private var custom1Label:String;
+			[Bindable]
+			private var custom2Label:String;
+			[Bindable]
+			private var custom3Label:String;
+			[Bindable]
+			private var custom4Label:String;
+			[Bindable]
+			private var custom5Label:String;
+			[Bindable]
+			private var custom6Label:String;
+			
+			[Bindable]
+			private var _xmpRightsValues:Array =
+				[{label:"Unknown", data:""},
+					{label:"Copyrighted", data:"True"},
+					{label:"Public Domain", data:"False"}];
+			
+			[Bindable]
+			private var _CClicenseValues:Array = 
+				[{label:"Not a Creative Commons License", data:""},									
+					{label:"Attribution", data:"http://creativecommons.org/licenses/by/3.0/"},
+					{label:"Attribution Share Alike", data:"http://creativecommons.org/licenses/by-sa/3.0/"},
+					{label:"Attribution No Derivatives", data:"http://creativecommons.org/licenses/by-nd/3.0/"},
+					{label:"Attribution Non-Commercial", data:"http://creativecommons.org/licenses/by-nc/3.0/"},
+					{label:"Attribution Non-Commercial Share Alike", data:"http://creativecommons.org/licenses/by-nc-sa/3.0/"},
+					{label:"Attribution Non-Commercial No Derivatives", data:"http://creativecommons.org/licenses/by-nc-nd/3.0/"}];
+			
+			private function updateComboBox(comboBox:XMPComboBox, xmpPath:String): void
+			{
+				//Get the value from the XMP
+				var xmpVal:IXMPProperty = xmpAccess.getProperty(xmpPath);
+				if(xmpVal && xmpVal.value)
+				{
+					var combovalObj:Object = {label: xmpVal.value, data: xmpVal.value};
+					//Look through the combo box until we find the value, then select it
+					for(var i:int = 0; i<comboBox.dataProvider.length; i++)
+					{
+						if(comboBox.dataProvider[i].data == combovalObj.data)
+						{
+							comboBox.selectedIndex = i;
+							//comboBox.dispatchEvent(new ListEvent("change"));
+							return;
+						}
+					}
+				}
+				else{
+					comboBox.selectedIndex = 0;
+				}
+			}			
+			
+			// Fires when the panel is opened
+			private function xmpReadHandler(event:XMPEvent):void
+			{	
+				ToolTipManager.showDelay = 500;// Display immediately on hover.
+				ToolTip.maxWidth = 500;
+				updateComboBox (_xmpRights, "xmpRights:Marked");
+				updateComboBox (_CClicense, "cc:license");
+				
+				// Retrieve user preferences
+				if(panelDescription.prefs != null)
+					var prefs:XML = new XML("<prefs></prefs>");
+				if(panelDescription.prefs)
+				{
+					prefs.appendChild(panelDescription.prefs);
+					ToolTipManager.enabled = prefs['ToolTipManager.enabled'].text() == 'false' ? false : true;
+					_toggleToolTips.selected = prefs['ToolTipManager.enabled'].text() == 'false' ? false : true;
+					_showSchemas.selected = prefs['_showSchemas.selected'].text() == 'false' ? false : true;
+					custom1Label = prefs['_custom1Label.text'].text();	
+					custom2Label = prefs['_custom2Label.text'].text();
+					custom3Label = prefs['_custom3Label.text'].text();
+					custom4Label = prefs['_custom4Label.text'].text();
+					custom5Label = prefs['_custom5Label.text'].text();
+					custom6Label = prefs['_custom6Label.text'].text();
+					_fieldsSaved.selected = prefs['_fieldsSaved.selected'].text() == 'true' ? true : false;
+					_StateListCBox.selected = prefs['_StateListCBox.selected'].text() == 'false' ? false : true;
+					_StateAccordionCBox.selected = prefs['_StateAccordionCBox.selected'].text() == 'false' ? false : true;	
+					_StateSideBySideCBox.selected = prefs['_StateSideBySideCBox.selected'].text() == 'false' ? false : true;
+					_workAgentCBox.selected = prefs['_workAgentCBox.selected'].text() == 'false' ? false : true;
+					_workTitleCBox.selected = prefs['_workTitleCBox.selected'].text() == 'false' ? false : true;
+					_dcTitleCBox.selected = prefs['_dcTitleCBox.selected'].text() == 'false' ? false : true;
+					_workViewCBox.selected = prefs['_workViewCBox.selected'].text() == 'false' ? false : true;
+					_workDateCBox.selected = prefs['_workDateCBox.selected'].text() == 'false' ? false : true;
+					_workStylePeriodCBox.selected = prefs['_workStylePeriodCBox.selected'].text() == 'false' ? false : true;
+					_workCultureCBox.selected = prefs['_workCultureCBox.selected'].text() == 'false' ? false : true;
+					_workWorkTypeCBox.selected = prefs['_workWorkTypeCBox.selected'].text() == 'false' ? false : true;
+					_workMaterialCBox.selected = prefs['_workMaterialCBox.selected'].text() == 'false' ? false : true;
+					_workTechniqueCBox.selected = prefs['_workTechniqueCBox.selected'].text() == 'false' ? false : true;
+					_workMeasurementsCBox.selected = prefs['_workMeasurementsCBox.selected'].text() == 'false' ? false : true;
+					_workRepositoryCBox.selected = prefs['_workRepositoryCBox.selected'].text() == 'false' ? false : true;
+					_workLocSiteCBox.selected = prefs['_workLocSiteCBox.selected'].text() == 'false' ? false : true;
+					_workLocCreatCBox.selected = prefs['_workLocCreatCBox.selected'].text() == 'false' ? false : true;
+					_workLocDiscCBox.selected = prefs['_workLocDiscCBox.selected'].text() == 'false' ? false : true;
+					_workLocExhibCBox.selected = prefs['_workLocExhibCBox.selected'].text() == 'false' ? false : true;
+					_workLocInstalCBox.selected = prefs['_workLocInstalCBox.selected'].text() == 'false' ? false : true;
+					_workLocPerfCBox.selected = prefs['_workLocPerfCBox.selected'].text() == 'false' ? false : true;
+					_workLocOtherCBox.selected = prefs['_workLocOtherCBox.selected'].text() == 'false' ? false : true;
+					_workLocNotesCBox.selected = prefs['_workLocNotesCBox.selected'].text() == 'false' ? false : true;
+					_workRefidCBox.selected = prefs['_workRefidCBox.selected'].text() == 'false' ? false : true;
+					_workRightsStatementCBox.selected = prefs['_workRightsStatementCBox.selected'].text() == 'false' ? false : true;
+					_workDescriptionCBox.selected = prefs['_workDescriptionCBox.selected'].text() == 'false' ? false : true;
+					_workSubjectCBox.selected = prefs['_workSubjectCBox.selected'].text() == 'false' ? false : true;
+					_workInscriptionCBox.selected = prefs['_workInscriptionCBox.selected'].text() == 'false' ? false : true;
+					_workRelationCBox.selected = prefs['_workRelationCBox.selected'].text() == 'false' ? false : true;
+					_workTextRefCBox.selected = prefs['_workTextRefCBox.selected'].text() == 'false' ? false : true;
+					_custom1CBox.selected = prefs['_custom1CBox.selected'].text() == 'false' ? false : true;
+					_custom2CBox.selected = prefs['_custom2CBox.selected'].text() == 'false' ? false : true;
+					_imageViewCBox.selected = prefs['_imageViewCBox.selected'].text() == 'false' ? false : true;
+					_imageDateCBox.selected = prefs['_imageDateCBox.selected'].text() == 'false' ? false : true;
+					_imageCreatorCBox.selected = prefs['_imageCreatorCBox.selected'].text() == 'false' ? false : true;
+					_workSourceCBox.selected = prefs['_workSourceCBox.selected'].text() == 'false' ? false : true;
+					_adminCollCBox.selected = prefs['_adminCollCBox.selected'].text() == 'false' ? false : true;
+					_imageSourceCBox.selected = prefs['_imageSourceCBox.selected'].text() == 'false' ? false : true;
+					_xmpRightsCBox.selected = prefs['_xmpRightsCBox.selected'].text() == 'false' ? false : true;
+					_CClicenseCBox.selected = prefs['_CClicenseCBox.selected'].text() == 'false' ? false : true;
+					_imageUsageTermsCBox.selected = prefs['_imageUsageTermsCBox.selected'].text() == 'false' ? false : true;
+					_imageRightsStatementCBox.selected = prefs['_imageRightsStatementCBox.selected'].text() == 'false' ? false : true;
+					_imageRightsURLCBox.selected = prefs['_imageRightsURLCBox.selected'].text() == 'false' ? false : true;
+					_custom3CBox.selected = prefs['_custom3CBox.selected'].text() == 'false' ? false : true;
+					_custom4CBox.selected = prefs['_custom4CBox.selected'].text() == 'false' ? false : true;
+					_catalogerCBox.selected = prefs['_catalogerCBox.selected'].text() == 'false' ? false : true;
+					_orderIDCBox.selected = prefs['_orderIDCBox.selected'].text() == 'false' ? false : true;
+					_custom5CBox.selected = prefs['_custom5CBox.selected'].text() == 'false' ? false : true;
+					_custom6CBox.selected = prefs['_custom6CBox.selected'].text() == 'false' ? false : true;
+					_keywordsCBox.selected = prefs['_keywordsCBox.selected'].text() == 'false' ? false : true;
+					_captionCBox.selected = prefs['_captionCBox.selected'].text() == 'false' ? false : true;				
+				}
+				
+				//Make IPTC Ext AO Alert button visible
+				var countIptc4xmpExtAO: int = xmpAccess.getPropertyList("Iptc4xmpExt:ArtworkOrObject").length;
+				if ( countIptc4xmpExtAO > 0  &&
+					xmpAccess.getPropertyList("Iptc4xmpExt:ArtworkOrObject[1]").length != 0 )
+				{				
+					_iptcAlertButton.visible = true;
+					_iptcAlertButton.includeInLayout = true;
+				}
+				
+				//Enable _copyfromIPTC CoreLoc button when panel is opened
+				var iptcCoreLocLo:IXMPProperty = xmpAccess.getProperty("Iptc4xmpCore:Location");
+				var iptcCoreLocC:IXMPProperty = xmpAccess.getProperty("photoshop:City");
+				var iptcCoreLocS:IXMPProperty = xmpAccess.getProperty("photoshop:State");
+				var iptcCoreLocCn:IXMPProperty = xmpAccess.getProperty("photoshop:Country");
+				var iptcCoreLocCC:IXMPProperty = xmpAccess.getProperty("Iptc4xmpCore:CountryCode");
+				var workSite:IXMPProperty = xmpAccess.getProperty("vrae:work.locationSite");				
+				
+				if (workSite.value.length == 0 && iptcCoreLocLo.value || workSite.value.length == 0 && iptcCoreLocC.value || workSite.value.length == 0 && iptcCoreLocS.value || workSite.value.length == 0 && iptcCoreLocCn.value || workSite.value.length == 0 && iptcCoreLocCC.value)
+				{					
+					_copyfromCoreLoc2WHBox.includeInLayout = true;
+					_copyfromCoreLoc2WHBox.visible = true;
+				}
+				else
+				{					
+					_copyfromCoreLoc2WHBox.includeInLayout = false;
+					_copyfromCoreLoc2WHBox.visible = false;
+				}
+				
+				var pattern:RegExp = /\"/g;					
+				var s:Array = [iptcCoreLocLo.value, iptcCoreLocC.value, iptcCoreLocS.value, iptcCoreLocCn.value, iptcCoreLocCC.value,];			
+				
+				for(var i:int, str:String; i<s.length; i++){
+					if(s[i] == ''){s.splice(i, 1); i--;}
+				}
+				_copyfromCoreLoc2W.label = s.join(', ');
+				_copyfromCoreLoc2W.label = ("Copy IPTC Core Location: " + _copyfromCoreLoc2W.label.replace(pattern, ""));
+				
+				//Enable copy dc:title to AoTitle button if dc:title has data and AoTitle does not
+				var dcTitle:IXMPProperty = xmpAccess.getLocalizedText("dc:title");
+				var workTitle:IXMPProperty = xmpAccess.getProperty("vrae:work.title");			
+				if(dcTitle.value && workTitle.value.length == 0)
+				{
+					_copyDcTitleHBox.includeInLayout = true;
+					_copyDcTitleHBox.visible = true;	
+					_CopyDcTbutton.label = "Copy DC Title: " + dcTitle.value;
+				}
+				else
+				{
+					_copyDcTitleHBox.includeInLayout = false;
+					_copyDcTitleHBox.visible = false;										
+				}
+				
+				// Hide schema logos if _showSchemasCBox is "unselected" in prefs
+				{
+					toggleSchemaLogos ([_CClogo1, _dcLogo1, _dcLogo2, _dcLogo4, _dcLogo5, _dcLogo6, _iptcLogo1, _vraLogo1, _vraLogo2, _vraLogo3, _vraLogo4, _vraLogo5, _vraLogo6, _vraLogo7, _vraLogo8, _vraLogo9, _vraLogo10, _vraLogo11, _vraLogo12, _vraLogo13, _vraLogo14, _vraLogo15, _vraLogo16, _vraLogo17, _vraLogo18, _vraLogo19, _vraLogo20, _vraLogo21, _vraLogo22, _vraLogo23, _vraLogo24, _vraLogo25, _vraLogo26, _vraLogo27, _vraLogo28, _vraLogo29, _vraLogo30, _vraLogo31, _vraLogo32, _vraLogo33, _vraLogo34, _vraLogo35, _vraLogo36, _XMP_photoshop2, _XMP_photoshop3, _XMP_Rights1, _XMP_Rights2, _XMP_Rights4]);	
+				}
+				// Hide individual fields if customized check boxes are "unselected" in prefs	
+				{
+					updateFieldCheckbox();
+				}
+			}		
+			
+			// If custom 1 or 2 labels are null, display from prefs
+			private function getWorkCustomLabels():void
+			{	
+				if (xmpAccess.getProperty("vrae:custom1/vrae:_label").value.length == 0 && _custom1Label.text == "")
+				{
+					_custom1Label.text = custom1Label;
+				}
+				if (xmpAccess.getProperty("vrae:custom2/vrae:_label").value.length == 0 && _custom2Label.text == "")
+				{
+					_custom2Label.text = custom2Label;
+				}
+			}
+			
+			// If custom 3 or 4 labels are null, display from prefs
+			private function getImageCustomLabels():void
+			{	
+				if (xmpAccess.getProperty("vrae:custom3/vrae:_label").value.length == 0 && _custom3Label.text == "")
+				{
+					_custom3Label.text = custom3Label;
+				}
+				if (xmpAccess.getProperty("vrae:custom4/vrae:_label").value.length == 0 && _custom4Label.text == "")
+				{
+					_custom4Label.text = custom4Label;
+				}
+			}
+			
+			// If custom 5 or 6 labels are null, display from prefs
+			private function getAdminCustomLabels():void
+			{	
+				if (xmpAccess.getProperty("vrae:custom5/vrae:_label").value.length == 0 && _custom5Label.text == "")
+				{
+					_custom5Label.text = custom5Label;
+				}
+				if (xmpAccess.getProperty("vrae:custom6/vrae:_label").value.length == 0 && _custom6Label.text == "")
+				{
+					_custom6Label.text = custom6Label;
+				}
+			}
+			
+			private function toggleToolTips():void 
+			{
+				if (ToolTipManager.enabled) {
+					ToolTipManager.enabled = false;
+				} else {
+					ToolTipManager.enabled = true;
+				}
+			}
+			
+			private function toggleSchemaLogos(items: Array):void{
+				var item:UIComponent;
+				
+				for each (item in items)
+				{
+					if(_showSchemas.selected == true){
+						item.visible = true;
+						item.includeInLayout = true;
+					}else{
+						item.visible = false;
+						item.includeInLayout = false;
+					}
+				}
+			}
+			
+			// Select Accordion view state 
+			private function selectStateTypeWork():void {
+				_typesAccordion.selectedIndex = 0;
+				this.xmpModification = true;
+			}
+			
+			// Select Accordion Image view state 
+			private function selectStateTypeImage():void {
+				_typesAccordion.selectedIndex = 1;
+				this.xmpModification = true;
+			}
+			
+			// Select Accordion Admin view state 
+			private function selectStateTypeAdmin():void {
+				_typesAccordion.selectedIndex = 2;
+				this.xmpModification = true;
+			}
+			
+			// Select Accordion Summary view state 
+			private function selectStateTypeSummary():void {
+				_typesAccordion.selectedIndex = 3;
+				this.xmpModification = true;
+			}
+			
+			// Select Customize view state 
+			private function selectStateCustomize():void {
+				currentState="Customize";
+				this.xmpModification = true;
+			}
+			
+			// Store choice of List State
+			private function storeListState():void
+			{
+				_StateListCBox.selected = true;
+				_StateAccordionCBox.selected = false;
+				_StateSideBySideCBox.selected = false;
+			}
+			
+			// Store choice of Accordion State
+			private function storeListAccordion():void
+			{
+				_StateListCBox.selected = false;
+				_StateAccordionCBox.selected = true;
+				_StateSideBySideCBox.selected = false;
+			}
+			
+			// Store choice of SideBySide State
+			private function storeListSideBySide():void
+			{
+				_StateListCBox.selected = false;
+				_StateAccordionCBox.selected = false;
+				_StateSideBySideCBox.selected = true;
+			}
+			
+			// Open stored state based which check box is selected
+			private function openStoredState():void
+			{
+				if (_StateListCBox.selected == true)
+				{
+					currentState = "List";
+				}
+				if (_StateAccordionCBox.selected == true)
+				{
+					currentState = "Accordion";
+				}
+				if (_StateSideBySideCBox.selected == true)
+				{
+					currentState = "SideBySide";
+				}
+			}
+			
+			// Sync View fields in Work and Image section
+			private function syncImageTitle1():void
+			{
+				_workTitleView.text = _imageView.text;
+			}
+			private function syncImageTitle2():void
+			{
+				_imageView.text = _workTitleView.text
+			}
+			
+			// IPTC Extension additonal data available alert
+			private function iptcExtAlert():void
+			{				
+				Alert.show("to view and edit this data use the Adobe CS5 IPTC Extension panel or the CS3/4 IPTC/PLUS plugin available at: http://www.iptc.org/goto?iptcplustoolkitadobecs.", "This image contains additional artwork/object data not visible here", Alert.OK);
+			}				
+			
+			//Copy iptc core location to Work Site
+			private function copyIptcCoreLocS():void
+			{
+				var iptcCoreLocLo:IXMPProperty = xmpAccess.getProperty("Iptc4xmpCore:Location");
+				var iptcCoreLocC:IXMPProperty = xmpAccess.getProperty("photoshop:City");
+				var iptcCoreLocS:IXMPProperty = xmpAccess.getProperty("photoshop:State");
+				var iptcCoreLocCn:IXMPProperty = xmpAccess.getProperty("photoshop:Country");
+				var iptcCoreLocCC:IXMPProperty = xmpAccess.getProperty("Iptc4xmpCore:CountryCode");
+				var pattern:RegExp = /\"/g;					
+				var s:Array = [iptcCoreLocLo.value, iptcCoreLocC.value, iptcCoreLocS.value, iptcCoreLocCn.value,];			
+				
+				for(var i:int, str:String; i<s.length; i++){
+					if(s[i] == ''){s.splice(i, 1); i--;}
+				}
+				_workLocSite.text = s.join(', ');
+				_workLocSite.text = _workLocSite.text.replace(pattern, "");
+				trace (_workLocSite);								
+				xmpAccess.setProperty("vrae:work.locationSite", _workLocSite.text);
+				_copyfromCoreLoc2WHBox.includeInLayout = false;
+				_copyfromCoreLoc2WHBox.visible = false;
+			}
+			
+			// Sets Image Rights when Creastive Commons lisence is selected
+			private function syncCCrights():void
+			{
+				
+				if (_CClicense.selectedIndex == 0)
+				{
+					_CClicenseURL.text = ""
+					_ccStatement.includeInLayout = false
+					_ccStatement.visible = false
+				}
+				if (_CClicense.selectedIndex == 1)
+				{
+					_CClicenseURL.text = "http://creativecommons.org/licenses/by/3.0/";
+					_ccStatement.includeInLayout = true
+					_ccStatement.visible = true
+				}
+				if (_CClicense.selectedIndex == 2)
+				{
+					_CClicenseURL.text = "http://creativecommons.org/licenses/by-sa/3.0/";
+					_ccStatement.includeInLayout = true
+					_ccStatement.visible = true
+				}
+				if (_CClicense.selectedIndex == 3)
+				{
+					_CClicenseURL.text = "http://creativecommons.org/licenses/by-nd/3.0/";
+					_ccStatement.includeInLayout = true
+					_ccStatement.visible = true
+				}
+				if (_CClicense.selectedIndex == 4)
+				{
+					_CClicenseURL.text = "http://creativecommons.org/licenses/by-nc/3.0/";
+					_ccStatement.includeInLayout = true
+					_ccStatement.visible = true
+				}
+				if (_CClicense.selectedIndex == 5)
+				{
+					_CClicenseURL.text = "http://creativecommons.org/licenses/by-nc-sa/3.0/";
+					_ccStatement.includeInLayout = true
+					_ccStatement.visible = true
+				}
+				if (_CClicense.selectedIndex == 6)
+				{
+					_CClicenseURL.text = "http://creativecommons.org/licenses/by-nc-nd/3.0/";
+					_ccStatement.includeInLayout = true
+					_ccStatement.visible = true
+				}
+			}
+			
+			// Appends Creative Commons statement to xmpRights:UsageTerms
+			private function insertCCStement():void
+			{
+				var by:Array = ["This work is licensed to the public under Creative Commons Attribution 3.0 Unported License.", _imageUsageTerms.text];
+				var bySa:Array = ["This work is licensed to the public under Creative Commons Attribution-ShareAlike 3.0 Unported License.", _imageUsageTerms.text];
+				var byNd:Array = ["This work is licensed to the public under Creative Commons Attribution-NoDerivatives 3.0 Unported License.", _imageUsageTerms.text];
+				var byNc:Array = ["This work is licensed to the public under Creative Commons Attribution-NonCommercial 3.0 Unported License.", _imageUsageTerms.text];
+				var byNcSa:Array = ["This work is licensed to the public under Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.", _imageUsageTerms.text];
+				var byNcNd:Array = ["This work is licensed to the public under Creative Commons Attribution-NonCommercial-NoDerivatives 3.0 Unported License.", _imageUsageTerms.text];
+				
+				if (_CClicense.selectedIndex == 1)
+				{
+					_imageUsageTerms.text = by.join(' ');
+					_ccStatement.includeInLayout = false
+					_ccStatement.visible = false
+				}
+				if (_CClicense.selectedIndex == 2)
+				{
+					_imageUsageTerms.text = bySa.join(' ');
+					_ccStatement.includeInLayout = false
+					_ccStatement.visible = false
+				}
+				if (_CClicense.selectedIndex == 3)
+				{
+					_imageUsageTerms.text = byNd.join(' ');
+					_ccStatement.includeInLayout = false
+					_ccStatement.visible = false
+				}
+				if (_CClicense.selectedIndex == 4)
+				{
+					_imageUsageTerms.text = byNc.join(' ');
+					_ccStatement.includeInLayout = false
+					_ccStatement.visible = false
+				}
+				if (_CClicense.selectedIndex == 5)
+				{
+					_imageUsageTerms.text = byNcSa.join(' ');
+					_ccStatement.includeInLayout = false
+					_ccStatement.visible = false
+				}
+				if (_CClicense.selectedIndex == 6)
+				{
+					_imageUsageTerms.text = byNcNd.join(' ');
+					_ccStatement.includeInLayout = false
+					_ccStatement.visible = false
+				}
+				{
+					xmpAccess.setLocalizedText("xmpRights:UsageTerms", "x-default", _imageUsageTerms.text);
+				}
+			}
+			
+			
+			// Inserts Copyright symbol in _imageRightsStatement
+			private function imageCircleC():void
+			{
+				var circleC:Array = ["© ", _imageRightsStatement.text];
+				_imageRightsStatement.text = circleC.join(' ');
+			}
+			
+			// Summary section auto fill funtions
+			private function toggleFill(checkBox:CheckBox, button:Button):void
+			{
+				if(checkBox.selected == true)
+				{
+					button.enabled = false;
+					button.alpha = .7;
+					checkBox.alpha = 1;
+				}
+				else{
+					button.enabled = true;
+					button.alpha = 1;
+					checkBox.alpha = .6;
+				}
+			}
+			
+			private function clearAll():void 
+			{
+				_dcTitle.text = "";
+				_caption.text = "";
+				_keywords.text = "";
+			}
+			
+			private function fillAll():void 
+			{
+				fillTitle();
+				fillCaption();
+				fillKeywords();
+			}
+			
+			private function clearTitle():void 
+			{
+				_dcTitle.text = "";
+			}
+			private function fillTitle():void 
+			{ 
+				var s:Array = [_dcTitle.text,_workTitle.text,_imageView.text];
+				for(var i:int, str:String; i<s.length; i++){
+					if(s[i] == ''){s.splice(i, 1); i--;}
+				}
+				_dcTitle.text = s.join('; ');
+				xmpAccess.setLocalizedText("dc:title", "x-default", _dcTitle.text, 0);
+			}
+			
+			//Manual copy dc:title to AOTitle if check box = true
+			private function ManualcopydcTitleToAO():void
+			{		
+				{
+					_workTitle.text = _dcTitle.text;	
+					xmpAccess.setProperty("vrae:work.title", _dcTitle.text, 0);
+					_CopyDcTbutton.includeInLayout = false;
+					_CopyDcTbutton.visible = false;
+				}
+			}
+			
+			// Keywords
+			private function clearKeywords():void 
+			{
+				_keywords.text = "";
+			}
+			
+			private function fillKeywords():void 
+			{ 
+				var s:Array = [_keywords.text,_workSubject.text,_workStylePeriod.text,_workCulture.text,_workWorkType.text,_workTechnique.text];
+				for(var i:int, str:String; i<s.length; i++){
+					if(s[i] == ''){s.splice(i, 1); i--;}
+				}
+				_keywords.text = s.join('; ');
+				xmpAccess.separateArrayItems("dc:subject",_keywords.text,IXMPConst.ARRAY);
+			}
+			
+			// Description/Caption			
+			private function clearCaption():void 
+			{
+				_caption.text = "";
+			}
+	
+			private function fillCaption():void 
+			{ 
+				var pattern:RegExp = /\"/g;			
+				var s:Array = [_caption.text,_workAgent.text,_workTitle.text,_imageView.text,_workVraDate.text,_workWorkType.text,_workMaterial.text,_workMeasurements.text,_workLocRep.text,_workLocSite.text,_workLocCreat.text,_workLocDisc.text,_workLocExhib.text,_workLocInstal.text,_workLocPerf.text,_workLocOther.text,_workRefid.text,_workRightsStatement.text];			
+				for(var i:int, str:String; i<s.length; i++){
+					if(s[i] == ''){s.splice(i, 1); i--;}
+				}
+				_caption.text = s.join('; ');
+				_caption.text = _caption.text.replace(pattern, "");
+				trace (_caption);
+				xmpAccess.setLocalizedText("dc:description", "x-default", _caption.text);								
+			}	
+			
+			private function updateFieldCheckbox():void
+			{	
+				var CBoxes:Array = [_workAgentCBox,_workTitleCBox,_dcTitleCBox,_workViewCBox,_workDateCBox,_workStylePeriodCBox,_workCultureCBox,_workWorkTypeCBox,_workMaterialCBox,_workTechniqueCBox,_workMeasurementsCBox,_workRepositoryCBox,_workLocSiteCBox,_workLocCreatCBox, _workLocDiscCBox,_workLocExhibCBox,_workLocInstalCBox,_workLocPerfCBox,_workLocOtherCBox,_workLocNotesCBox,_workRefidCBox,_workRightsStatementCBox,_workDescriptionCBox,_workSubjectCBox,_workInscriptionCBox,_workRelationCBox,_workTextRefCBox,_custom1CBox,_custom2CBox,_imageViewCBox,_imageDateCBox,_imageCreatorCBox,_workSourceCBox,_imageSourceCBox,_xmpRightsCBox,_CClicenseCBox,_imageUsageTermsCBox,_imageRightsStatementCBox,_imageRightsURLCBox,_custom3CBox,_custom4CBox,_adminCollCBox,_catalogerCBox,_orderIDCBox,_custom5CBox,_custom6CBox,_keywordsCBox,_captionCBox];
+				var HBoxes:Array = [_workAgentHBox,_vraWorkTitleHBox,_dcTitleHBox,_workViewHBox,_workDateHBox,_workStylePeriodHBox,_workCultureHBox,_workWorkTypeHBox,_workMaterialHBox,_workTechniqueHBox,_workMeasurementsHBox,_workRepositoryHBox,_workLocSiteHBox,_workLocCreatHBox, _workLocDiscHBox,_workLocExhibHBox,_workLocInstalHBox,_workLocPerfHBox,_workLocOtherHBox,_workLocNotesHBox,_workRefidHBox,_workRightsStatementHBox,_workDescriptionHBox,_workSubjectHBox,_workInscriptionHBox,_workRelationHBox,_workTextRefHBox,_custom1VBox,_custom2VBox,_imageViewHBox,_imageDateHBox,_imageCreatorHBox,_workSourceHBox,_imageSourceHBox,_xmpRightsHBox,_CClicenseHBox,_imageUsageTermsHBox,_imageRightsStatementHBox,_imageRightsURLHBox,_custom3VBox,_custom4VBox,_adminCollHBox,_catalogerHBox,_orderIDHBox,_custom5VBox,_custom6VBox,_keywordsVBox,_captionVBox];
+				for (var i:int = 0; i < CBoxes.length; i++){
+					if (CBoxes[i].selected == false)
+					{
+						HBoxes[i].visible = false;
+						HBoxes[i].includeInLayout = false;
+					}
+					else 
+					{
+						HBoxes[i].visible = true;
+						HBoxes[i].includeInLayout = true;
+					}
+				}			
+				_fieldsSaved.selected = true;
+				customizedAlert();
+				openStoredState();
+				this.xmpModification = true;
+			}
+			
+			private function showFields(items: Array):void{
+				var item:UIComponent;
+				
+				for each (item in items)
+				{
+					item.visible = true;
+					item.includeInLayout = true;
+				}
+			}
+			
+			private function checkFields(items: Array):void{
+				var item:CheckBox;
+				
+				for each (item in items)
+				{
+					item.selected = true;
+				}
+			}
+			
+			private function customizedAlert():void{
+				if (_workAgentCBox.selected==false  || _workTitleCBox.selected==false  || _dcTitleCBox.selected==false  || _workViewCBox.selected==false  || _workDateCBox.selected==false  || _workStylePeriodCBox.selected==false  || _workCultureCBox.selected==false  || _workWorkTypeCBox.selected==false  || _workMaterialCBox.selected==false  || _workTechniqueCBox.selected==false  || _workMeasurementsCBox.selected==false  || _workRepositoryCBox.selected==false  || _workLocSiteCBox.selected==false  || _workLocDiscCBox.selected==false  || _workLocExhibCBox.selected==false  || _workLocInstalCBox.selected==false  || _workLocPerfCBox.selected==false  || _workLocOtherCBox.selected==false  || _workRightsStatementCBox.selected==false  || _workDescriptionCBox.selected==false  || _workSubjectCBox.selected==false  || _workRelationCBox.selected==false  || _workTextRefCBox.selected==false  || _custom1CBox.selected==false  || _custom2CBox.selected==false  || _imageViewCBox.selected==false  || _imageDateCBox.selected==false  || _imageCreatorCBox.selected==false  || _workSourceCBox.selected==false  || _adminCollCBox.selected==false  || _imageSourceCBox.selected==false  || _xmpRightsCBox.selected==false  || _CClicenseCBox.selected==false  || _imageUsageTermsCBox.selected==false  || _imageRightsStatementCBox.selected==false  || _imageRightsURLCBox.selected==false || _custom3CBox.selected==false  || _custom4CBox.selected==false  || _catalogerCBox.selected==false  || _orderIDCBox.selected==false  || _custom5CBox.selected==false  || _custom6CBox.selected==false  || _keywordsCBox.selected==false  || _captionCBox.selected==false)
+				{
+					_customizedAlertLabel.text = customizeAlertTrue;
+					_resetFieldsButton.visible = true;
+					_resetFieldsButton.includeInLayout = true;
+					_resetFieldsButton2.visible = true;
+					_resetFieldsButton2.includeInLayout = true;
+				}
+				else
+				{
+					_customizedAlertLabel.text = customizeAlertFalse;
+					_resetFieldsButton.visible = false;
+					_resetFieldsButton.includeInLayout = false;
+					_resetFieldsButton2.visible = false;
+					_resetFieldsButton2.includeInLayout = false;
+				}
+				this.xmpModification = true;
+			}
+			
+			private function resetFields():void
+			{
+				_customizedAlertLabel.text = customizeAlertFalse;
+				_resetFieldsButton.visible = false;
+				_resetFieldsButton.includeInLayout = false;
+				_resetFieldsButton2.visible = false;
+				_resetFieldsButton2.includeInLayout = false;
+				_fieldsSaved.selected = false;
+				showFields([_workAgentHBox,_vraWorkTitleHBox,_dcTitleHBox,_workViewHBox,_workDateHBox,_workStylePeriodHBox,_workCultureHBox,_workWorkTypeHBox,_workMaterialHBox,_workTechniqueHBox,_workMeasurementsHBox,_workRepositoryHBox,_workLocSiteHBox,_workLocCreatHBox,_workLocDiscHBox,_workLocExhibHBox,_workLocInstalHBox,_workLocPerfHBox,_workLocOtherHBox,_workLocNotesHBox,_workRefidHBox,_workRightsStatementHBox,_workDescriptionHBox,_workSubjectHBox,_workInscriptionHBox,_workRelationHBox,_workTextRefHBox,_custom1VBox,_custom2VBox,_imageViewHBox,_imageDateHBox,_imageCreatorHBox,_workSourceHBox,_imageSourceHBox,_xmpRightsHBox,_CClicenseHBox,_imageUsageTermsHBox,_imageRightsStatementHBox,_imageRightsURLHBox,_custom3VBox,_custom4VBox,_adminCollHBox,_catalogerHBox,_orderIDHBox,_custom5VBox,_custom6VBox,_keywordsVBox,_captionVBox]);
+				checkFields([_workAgentCBox,_workTitleCBox,_dcTitleCBox,_workViewCBox,_workDateCBox,_workStylePeriodCBox,_workCultureCBox,_workWorkTypeCBox,_workMaterialCBox,_workTechniqueCBox,_workMeasurementsCBox,_workRepositoryCBox,_workLocSiteCBox,_workLocCreatCBox,_workLocDiscCBox,_workLocExhibCBox,_workLocInstalCBox,_workLocPerfCBox,_workLocOtherCBox,_workLocNotesCBox,_workRefidCBox,_workRightsStatementCBox,_workDescriptionCBox,_workSubjectCBox,_workInscriptionCBox,_workRelationCBox,_workTextRefCBox,_custom1CBox,_custom2CBox,_imageViewCBox,_imageDateCBox,_imageCreatorCBox,_workSourceCBox,_imageSourceCBox,_xmpRightsCBox,_CClicenseCBox,_imageUsageTermsCBox,_imageRightsStatementCBox,_imageRightsURLCBox,_custom3CBox,_custom4CBox,_adminCollCBox,_catalogerCBox,_orderIDCBox,_custom5CBox,_custom6CBox,_keywordsCBox,_captionCBox]);
+				this.xmpModification = true;
+			}
+			
+			protected function _workDescription_resizeHandler(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
+		]]>	
+	</mx:Script> 
+	<mx:Style>
+		.adminFieldBox
+		{
+			borderColor: #bdd197;
+			borderStyle: solid;	
+			cornerRadius: 5;
+			verticalGap: 0;
+		}
+		.adminFieldLabel
+		{
+			color: #5d6e37;
+			textAlign: right;
+		}
+		.adminInnerBox
+		{
+			borderColor: #bdd197;
+			borderStyle: solid;	
+			paddingBottom: 0;
+		}	
+		.adminOuterBox
+		{
+			backgroundColor: #e8f3d4;
+			borderColor: #97c049;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			verticalGap: 3;
+		}
+		.adminSectionLabel
+		{
+			color: #3d5606;
+			fontFamily: Arial;
+			fontSize: 14;
+			fontWeight: bold;
+		}
+		.button1
+		{
+			color: #000000;
+		}
+		.button2
+		{
+			color: #000000;
+			borderColor: #EAEAEA;
+			fillAlphas: 0.0, 0.0, 0.0, 0.0;
+		}
+		.clearGroupBox
+		{
+			horizontalAlign: left;
+			paddingBottom: 5;
+			paddingTop: 5;
+			verticalGap: 3;
+		}
+		.comboBox
+		{
+			cornerRadius: 0;
+			textAlign: left;
+			fillAlphas: 1.0, 1.0, 1.0, 1.0;
+			fillColors: #FFFFFF, #FFFFFF;
+			themeColor: #f44d4d;
+		}	
+		.customizeFormOuterBox
+		{
+			backgroundColor: #FFFFFF;
+			borderColor: #FFFFFF;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 20;
+			paddingBottom: 5;
+		}		
+		.customizeFormAdmin
+		{
+			backgroundColor: #e8f3d4;
+			borderColor: #97c049;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			paddingLeft: 10;
+			paddingRight: 10;
+			verticalGap: 0;
+		}		
+		.customizeFormImage
+		{
+			backgroundColor: #dde5ef;
+			borderColor: #80a1e3;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			paddingLeft: 10;
+			paddingRight: 10;
+			verticalGap: 0;
+		}
+		.customizeFormSummary
+		{
+			backgroundColor: #F0F0F0;
+			borderColor: #6a6a6a;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			paddingLeft: 10;
+			paddingRight: 10;
+			verticalGap: 0;
+		}
+		.customizeFormViews
+		{
+			borderColor: #B7BABC;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			paddingLeft: 10;
+			paddingRight: 10;
+			verticalGap: 0;
+		}
+		.customizeFormWork
+		{
+			backgroundColor: #ececdb;
+			borderColor: #bcac23;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			paddingLeft: 10;
+			paddingRight: 10;
+			verticalGap: 0;
+		}		
+		.imageSectionLabel
+		{
+			color: #243c71;
+			fontFamily: Arial;
+			fontSize: 14;
+			fontWeight: bold;
+		}
+		.imageOuterBox
+		{
+			backgroundColor: #dde5ef;
+			borderColor: #80a1e3;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			verticalGap: 3;
+		}
+		.imageInnerBox
+		{
+			borderColor: #b9ccf1;
+			borderStyle: solid;	
+			paddingBottom: 0;
+		}
+		.imageFieldBox
+		{	
+			borderColor: #b9ccf1;
+			borderStyle: solid;
+			color: #53607E;
+			cornerRadius: 5;
+			verticalGap: 0;
+		}
+		.imageFieldLabel
+		{
+			color: #243c71;
+			textAlign: right;
+		}
+		.instructionLabel
+		{
+			color: #838383;
+			paddingTop: 0;
+			paddingBottom: 3;
+		}
+		.summarySectionLabel
+		{
+			color: #2f2f2f;
+			fontFamily: Arial;
+			fontSize: 14;
+			fontWeight: bold;
+		}
+		.summaryOuterBox
+		{
+			backgroundColor: #F0F0F0;
+			borderColor: #6a6a6a;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingTop: 3;
+			paddingBottom: 5;
+			verticalGap: 3;
+		}
+		.summaryFieldBox
+		{
+			backgroundColor: #F0F0F0;
+			borderColor: #a8a9aa;
+			borderStyle: solid;	
+			cornerRadius: 5;
+			verticalGap: 3;
+		}
+		.summaryFieldLabel
+		{
+			color: #2f2f2f;
+			textAlign: right;
+		}	
+		.textInput
+		{
+			borderStyle: none;
+			paddingLeft: 2;
+			themeColor: #f44d4d;
+		}			
+		.workFieldBox
+		{	
+			borderColor: #d3cc93;
+			borderStyle: solid;
+			cornerRadius: 5;
+			verticalGap: 0;
+		}
+		.workFieldLabel
+		{
+			color: #706507;
+			textAlign: right;
+		}
+		.workOuterBox
+		{
+			backgroundColor: #ececdb;
+			borderColor: #bcac23;
+			borderStyle: solid;
+			cornerRadius: 7;
+			paddingBottom: 5;
+			verticalGap: 3;
+		}
+		.workSectionLabel
+		{
+			color: #5c5308;
+			fontFamily: Arial;
+			fontSize: 14;
+			fontWeight: bold;
+		}
+	</mx:Style>
+	
+	<fi:states>
+		<mx:State name="List">
+			<mx:RemoveChild target="{_customizeForm}"/>
+		</mx:State>
+		<mx:State name="Accordion">
+			<mx:RemoveChild target="{_customizeForm}"/>
+			<mx:AddChild relativeTo="{_footer}" position="before">
+				<mx:Accordion id="_typesAccordion" selectedIndex="0" width="100%" resizeToContent="true">
+					<mx:Canvas icon="@Embed('../../../target/VRA_1_0/resources/VRApanel_Work.png')" id="_workCanvas" width="100%">
+					</mx:Canvas>
+					<mx:Canvas icon="@Embed('../../../target/VRA_1_0/resources/VRApanel_Image.png')" id="_imageCanvas" width="100%">
+					</mx:Canvas>
+					<mx:Canvas icon="@Embed('../../../target/VRA_1_0/resources/VRApanel_Admin.png')" id="_adminCanvas" width="100%">
+					</mx:Canvas>
+					<mx:Canvas icon="@Embed('../../../target/VRA_1_0/resources/VRApanel_Summary.png')" id="_sumCcanvas" width="100%">
+					</mx:Canvas>
+				</mx:Accordion>
+			</mx:AddChild>
+			<mx:RemoveChild target="{_workForm}"/>
+			<mx:AddChild relativeTo="{_workCanvas}" position="lastChild" target="{_workForm}"/>
+			<mx:SetProperty target="{_workForm}" name="x" value="0"/>
+			<mx:SetProperty target="{_workForm}" name="y" value="0"/>
+			<mx:RemoveChild target="{_imageForm}"/>
+			<mx:AddChild relativeTo="{_imageCanvas}" position="lastChild" target="{_imageForm}"/>
+			<mx:SetProperty target="{_imageForm}" name="x" value="0"/>
+			<mx:SetProperty target="{_imageForm}" name="y" value="0"/>
+			<mx:RemoveChild target="{_adminForm}"/>
+			<mx:AddChild relativeTo="{_adminCanvas}" position="lastChild" target="{_adminForm}"/>
+			<mx:SetProperty target="{_adminForm}" name="x" value="0"/>
+			<mx:SetProperty target="{_adminForm}" name="y" value="0"/>
+			<mx:RemoveChild target="{_summaryForm}"/>
+			<mx:AddChild relativeTo="{_sumCcanvas}" position="lastChild" target="{_summaryForm}"/>
+			<mx:SetProperty target="{_summaryForm}" name="x" value="0"/>
+			<mx:SetProperty target="{_summaryForm}" name="y" value="0"/>
+			<mx:AddChild relativeTo="{_typesAccordion}" position="before">
+				<mx:HBox width="100%" horizontalGap="0">
+					<mx:HBox width="100%">
+					</mx:HBox>
+					<mx:Button id="_TypeWorkBtn" click="selectStateTypeWork()"
+							   upSkin="@Embed('../../../target/VRA_1_0/resources/WorkUp.png')"
+							   overSkin="@Embed('../../../target/VRA_1_0/resources/WorkOver.png')"
+							   downSkin="@Embed('../../../target/VRA_1_0/resources/WorkDown.png')"/>		
+					<mx:Button id="_TypeImageBtn" click="selectStateTypeImage()"
+							   upSkin="@Embed('../../../target/VRA_1_0/resources/ImageUp.png')"
+							   overSkin="@Embed('../../../target/VRA_1_0/resources/ImageOver.png')"
+							   downSkin="@Embed('../../../target/VRA_1_0/resources/ImageDown.png')"/>	
+					<mx:Button id="_TypeAdminBtn" click="selectStateTypeAdmin()"
+							   upSkin="@Embed('../../../target/VRA_1_0/resources/AdminUp.png')"
+							   overSkin="@Embed('../../../target/VRA_1_0/resources/AdminOver.png')"
+							   downSkin="@Embed('../../../target/VRA_1_0/resources/AdminDown.png')"/>
+					<mx:Button id="_TypeSumBtn" click="selectStateTypeSummary()"
+							   upSkin="@Embed('../../../target/VRA_1_0/resources/SummaryUp.png')"
+							   overSkin="@Embed('../../../target/VRA_1_0/resources/SummaryOver.png')"
+							   downSkin="@Embed('../../../target/VRA_1_0/resources/SummaryDown.png')"/>
+					<mx:HBox width="100%">
+					</mx:HBox>
+				</mx:HBox>
+			</mx:AddChild>
+			<mx:AddChild relativeTo="{_customizeButton4}" position="before" target="{_customizedAlertLabel}"/>
+			<mx:SetProperty target="{hbox31}" name="label" value="Image"/>
+		</mx:State>
+		<mx:State name="Customize">
+			<mx:RemoveChild target="{_GenInstr}"/>
+			<mx:RemoveChild target="{_workForm}"/>
+			<mx:RemoveChild target="{_imageForm}"/>
+			<mx:RemoveChild target="{_adminForm}"/>
+			<mx:RemoveChild target="{_summaryForm}"/>
+			<mx:SetStyle target="{_customizeForm}" name="verticalGap" value="0"/>
+			<mx:SetStyle target="{_customizeForm}" name="paddingBottom"/>
+			<mx:SetProperty target="{_FieldPrefsHBox}" name="height" value="30"/>
+			<mx:SetStyle target="{label32}" name="textAlign" value="left"/>
+			<mx:SetProperty target="{label32}" name="width" value="175"/>
+			<mx:RemoveChild target="{image1}"/>
+			<mx:RemoveChild target="{label9}"/>
+			<mx:RemoveChild target="{image4}"/>
+			<mx:RemoveChild target="{image5}"/>
+			<mx:RemoveChild target="{image6}"/>
+			<mx:RemoveChild target="{_customizedAlertHBox}"/>
+			<mx:RemoveChild target="{_customizedAlertLabel}"/>
+			<mx:RemoveChild target="{image3}"/>
+			<mx:SetProperty target="{image8}" name="source" value="@Embed('../../../target/VRA_1_0/resources/sideBySideDown_20.png')"/>
+			<mx:SetStyle target="{hbox34}" name="verticalAlign" value="bottom"/>
+			<mx:SetProperty target="{hbox34}" name="height" value="63"/>
+			<mx:AddChild relativeTo="{vbox3}" position="lastChild">
+				<mx:HBox width="100%" height="27" verticalAlign="bottom" paddingLeft="10">
+					<mx:Button id="_saveFieldPrefsButton2" styleName="button1" click="updateFieldCheckbox()" label="OK" icon="@Embed('../../../target/VRA_1_0/resources/checkBlue_over_16px.png')" height="20"/>
+				</mx:HBox>
+			</mx:AddChild>
+			<mx:RemoveChild target="{_aatButton}"/>
+			<mx:RemoveChild target="{_tgnButton}"/>
+			<mx:RemoveChild target="{_ulanButton}"/>
+			<mx:RemoveChild target="{label40}"/>
+		</mx:State>
+		<mx:State name="SideBySide">
+			<mx:RemoveChild target="{_customizeFormWorkHBox}"/>
+			<mx:AddChild relativeTo="{_customizeForm}" position="lastChild">
+				<mx:HBox width="100%">
+					<mx:VBox width="50%" id="vbox1" paddingLeft="5" paddingRight="5">
+					</mx:VBox>
+					<mx:VBox width="50%" id="vbox2" paddingRight="5" paddingLeft="5">
+					</mx:VBox>
+				</mx:HBox>
+			</mx:AddChild>
+			<mx:RemoveChild target="{_workForm}"/>
+			<mx:AddChild relativeTo="{vbox1}" position="lastChild" target="{_workForm}"/>
+			<mx:RemoveChild target="{_imageForm}"/>
+			<mx:AddChild relativeTo="{vbox2}" position="lastChild" target="{_imageForm}"/>
+			<mx:RemoveChild target="{_adminForm}"/>
+			<mx:AddChild relativeTo="{vbox2}" position="lastChild" target="{_adminForm}"/>
+			<mx:RemoveChild target="{_FieldPrefsHBox}"/>
+			<mx:RemoveChild target="{_summaryForm}"/>
+			<mx:AddChild relativeTo="{vbox2}" position="lastChild" target="{_summaryForm}"/>
+		</mx:State>
+	</fi:states>
+	
+	<fi:XMPNamespaces>	
+		<fi:XMPNamespace prefix="dc" value="http://purl.org/dc/elements/1.1/"/>
+		<fi:XMPNamespace prefix="dcterms" value="http://purl.org/dc/terms/"/>
+		<fi:XMPNamespace prefix="cc" value="http://creativecommons.org/ns#"/>
+		<fi:XMPNamespace prefix="exif" value="http://ns.adobe.com/exif/1.0/"/>
+		<fi:XMPNamespace prefix="Iptc4xmp" value="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/"/>
+		<fi:XMPNamespace prefix="Iptc4xmpExt" value="http://iptc.org/std/Iptc4xmpExt/2008-02-29/"/>
+		<fi:XMPNamespace prefix="photoshop" value="http://ns.adobe.com/photoshop/1.0/"/>
+		<fi:XMPNamespace prefix="vrae" value="http://www.vraweb.org/vracore/4.0/essential/"/>
+		<fi:XMPNamespace prefix="xmpRights" value="http://ns.adobe.com/xap/1.0/rights/"/>
+		<fi:XMPNamespace prefix="xmp" value="http://ns.adobe.com/xap/1.0/"/>
+	</fi:XMPNamespaces>
+	
+	<mx:VBox width="100%" backgroundColor="#FFFFFF">
+		<mx:VBox width="100%" height="100%" verticalGap="0">
+			<mx:HBox width="100%" backgroundColor="#FFFFFF" horizontalAlign="left"
+					 verticalAlign="middle">
+				<mx:Image width="162" height="55" buttonMode="true"
+						  click="navigateToURL(new URLRequest('http://www.vraweb.org'))"
+						  scaleContent="false"
+						  source="@Embed('../../../target/VRA_1_0/resources/VRAlogoWhite50.png')"
+						  toolTip="go to:&#xd; http://www.vraweb.org"/>
+				<mx:VBox width="100%" verticalGap="0">
+					<mx:HBox width="100%" verticalAlign="top">
+						<mx:Label id="label41" styleName="instructionLabel" text="panel version {_version}" textAlign="left" toolTip="{_codeDate}"/>		
+					<mx:Label id="label40" width="100%" styleName="instructionLabel"
+							  text="Search vocabularies: " textAlign="right"/>
+						<mx:Button id="_aatButton" buttonMode="true" click="navigateToURL(new URLRequest('http://www.getty.edu/research/tools/vocabularies/aat/index.html'))" toolTip="go to:&#13; Art and Architecture Thesaurus Online&#13; www.getty.edu/research/tools/vocabularies/aat/index.html"
+								   upSkin="@Embed('../../../target/VRA_1_0/resources/AAT_up_30.png')"
+								   overSkin="@Embed('../../../target/VRA_1_0/resources/AAT_over_30.png')"
+								   downSkin="@Embed('../../../target/VRA_1_0/resources/AAT_down_30.png')"/>
+						<mx:Button id="_tgnButton" buttonMode="true" click="navigateToURL(new URLRequest('http://www.getty.edu/research/tools/vocabularies/tgn/index.html'))" toolTip="go to:&#13; Getty Thesaurus of Geographic Names® Online&#13; www.getty.edu/research/tools/vocabularies/tgn/index.html"
+								   upSkin="@Embed('../../../target/VRA_1_0/resources/TGN_up_30.png')"
+								   overSkin="@Embed('../../../target/VRA_1_0/resources/TGN_over_30.png')"
+								   downSkin="@Embed('../../../target/VRA_1_0/resources/TGN_down_30.png')"/>
+						<mx:Button id="_ulanButton" buttonMode="true" click="navigateToURL(new URLRequest('http://www.getty.edu/research/tools/vocabularies/ulan/index.html'))" toolTip="go to:&#13; Union List of Artist Names® Online&#13; www.getty.edu/research/tools/vocabularies/ulan/index.html"
+								   upSkin="@Embed('../../../target/VRA_1_0/resources/ULAN_up_30.png')"
+								   overSkin="@Embed('../../../target/VRA_1_0/resources/ULAN_over_30.png')"
+								   downSkin="@Embed('../../../target/VRA_1_0/resources/ULAN_down_30.png')"/>	
+					</mx:HBox>
+					<mx:HBox id="hbox1" width="100%" verticalAlign="bottom">			
+						<mx:HBox width="30%" height="100%">
+						</mx:HBox>
+						<mx:Label id="_customizedAlertLabel" fontSize="12" color="#989898" fontStyle="normal" textAlign="right" text="all fields visible"/>
+						<mx:HBox id="_customizedAlertHBox" width="70%">	
+							<mx:Button id="_customizeButton4" toolTip="Customize" click="selectStateCustomize()" buttonMode="true"
+									   upSkin="@Embed('../../../target/VRA_1_0/resources/customizeUp_20.png')"
+									   overSkin="@Embed('../../../target/VRA_1_0/resources/customizeDown_20.png')"
+									   downSkin="@Embed('../../../target/VRA_1_0/resources/customizeDown_20.png')"/>
+						</mx:HBox>
+						
+					</mx:HBox>
+			</mx:VBox>
+			</mx:HBox>
+			<mx:VBox width="100%" id="_GenInstr" verticalGap="0" paddingTop = "10">
+				<mx:HBox width="100%" height="19">
+					<mx:Label text="Use semicolons as delimiters" id="_commaInst" styleName="instructionLabel"/>
+					<mx:HBox width="100%"/>
+				</mx:HBox>
+				<mx:HBox width="100%">
+					<mx:Label text="*to preserve commas and semicolons as punctuation, use quotes for a phrase.  (example: &quot;Picasso, Pablo&quot;)" id="_ParensInst" styleName="instructionLabel"/>
+					<mx:HBox width="100%" id="hbox31"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:VBox>
+		
+		<mx:VBox id="_customizeForm" width="100%" styleName="customizeFormOuterBox">
+			<mx:HBox id="_FieldPrefsHBox" width="100%">
+				<mx:HBox id="_saveFieldPrefs">
+					<mx:Label text="uncheck fields to hide" id="label32"/>
+					<mx:Button id="_saveFieldPrefsButton" height="20" label="OK"
+							   click="updateFieldCheckbox()"
+							   icon="@Embed('../../../target/VRA_1_0/resources/checkBlue_over_16px.png')"
+							   styleName="button1"/>
+				</mx:HBox>
+				<mx:Button id="_resetFieldsButton" click="resetFields()" label="Reset" styleName="button1" includeInLayout="false" visible="false" icon="@Embed('../../../target/VRA_1_0/resources/refresh2_blue_16.png')" height="20"/>
+				<mx:CheckBox id="_fieldsSaved" label="My panel view" selected="false" includeInLayout="false" visible="false"/>
+			</mx:HBox>
+			<mx:HBox width="100%" id="_customizeFormWorkHBox">
+				<mx:VBox id="_customizeFormWork" width="200" styleName="customizeFormWork">
+					<mx:Label text="Artwork/Object" toolTip="{_workSectionLabelTT}" color="#655F2D" fontWeight="bold" fontSize="14" fontFamily="Arial"/>
+					<mx:CheckBox label="Creator" id="_workAgentCBox" selected="true" change="customizedAlert()" toolTip="{_workAgentLabelTT}"/>
+					<mx:CheckBox label="Title" id="_workTitleCBox" selected="true" change="customizedAlert()" toolTip="{_workTitleLabelTT}"/>
+					<mx:CheckBox label="DC Title" id="_dcTitleCBox" selected="true" change="customizedAlert()" toolTip="{_dcTitleLabelTT}"/>
+					<mx:CheckBox label="(Image) View Description" id="_workViewCBox" selected="true" change="customizedAlert()" toolTip="{_ViewLabelTT}"/>
+					<mx:CheckBox label="Date" id="_workDateCBox" selected="true" change="customizedAlert()" toolTip="{_workVraDateLabelTT}"/>
+					<mx:CheckBox label="Style/Period" id="_workStylePeriodCBox" change="customizedAlert()" selected="true" toolTip="{_workStylePeriodLabelTT}"/>
+					<mx:CheckBox label="Culture" id="_workCultureCBox" selected="true" change="customizedAlert()" toolTip="{_workCultureLabelTT}"/>
+					<mx:CheckBox label="Work Type" id="_workWorkTypeCBox" selected="true" change="customizedAlert()" toolTip="{_workWorkTypeLabelTT}"/>
+					<mx:CheckBox label="Material" id="_workMaterialCBox" selected="true" change="customizedAlert()" toolTip="{_workMaterialLabelTT}"/>
+					<mx:CheckBox label="Technique" id="_workTechniqueCBox" selected="true" change="customizedAlert()" toolTip="{_workTechniqueLabelTT}"/>
+					<mx:CheckBox label="Measurements" id="_workMeasurementsCBox" selected="true" change="customizedAlert()" toolTip="{_workMeasurementsLabelTT}"/>
+					<mx:Label text="Location" paddingLeft="19"/>
+					<mx:CheckBox label="Repository" id="_workRepositoryCBox" selected="true" change="customizedAlert()" toolTip="{_workLocRepLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Site" id="_workLocSiteCBox" selected="true" change="customizedAlert()" toolTip="{_workLocSiteLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Creation" id="_workLocCreatCBox" selected="true" change="customizedAlert()" toolTip="{_workLocCreatLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Discovery" id="_workLocDiscCBox" selected="true" change="customizedAlert()" toolTip="{_workLocDiscLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Exhibition" id="_workLocExhibCBox" selected="true" change="customizedAlert()" toolTip="{_workLocExhibLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Installation" id="_workLocInstalCBox" selected="true" change="customizedAlert()" toolTip="{_workLocInstalLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Performance" id="_workLocPerfCBox" selected="true" change="customizedAlert()" toolTip="{_workLocPerfLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Other" id="_workLocOtherCBox" selected="true" change="customizedAlert()" toolTip="{_workLocOtherLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Notes" id="_workLocNotesCBox" selected="true" change="customizedAlert()" toolTip="{_workLocNotesLabelTT}" paddingLeft="20"/>
+					<mx:CheckBox label="Work ID" id="_workRefidCBox" selected="true" change="customizedAlert()" toolTip="{_workRefidLabelTT}"/>					
+					<mx:CheckBox label="Rights" id="_workRightsStatementCBox" selected="true" change="customizedAlert()" toolTip="{_workRightsStatementLabelTT}"/>
+					<mx:CheckBox label="Description" id="_workDescriptionCBox" selected="true" change="customizedAlert()" toolTip="{_workDescriptionLabelTT}"/>
+					<mx:CheckBox label="Subject" id="_workSubjectCBox" selected="true" change="customizedAlert()" toolTip="{_workSubjectLabelTT}"/>
+					<mx:CheckBox label="Inscription" id="_workInscriptionCBox" selected="true" change="customizedAlert()" toolTip="{_workInscriptionLabelTT}"/>					
+					<mx:CheckBox label="Relation" id="_workRelationCBox" selected="true" change="customizedAlert()" toolTip="{_workRelationLabelTT}"/>
+					<mx:CheckBox label="Text Reference" id="_workTextRefCBox" selected="true" change="customizedAlert()" toolTip="{_workTextRefLabelTT}"/>
+					<mx:CheckBox label="Info Source" id="_workSourceCBox" selected="true" change="customizedAlert()" toolTip="{_workSourceLabelTT}"/>
+					<mx:CheckBox label="Custom 1" id="_custom1CBox" selected="true" change="customizedAlert()" toolTip="{_customLabelTT}"/>
+					<mx:CheckBox label="Custom 2" id="_custom2CBox" selected="true" change="customizedAlert()" toolTip="{_customLabelTT}"/>
+				</mx:VBox>
+				<mx:VBox verticalGap="3">
+					<mx:VBox id="_customizeFormImage" width="200" styleName="customizeFormImage">
+						<mx:Label text="Image/Photo" color="#364568" fontWeight="bold" fontSize="14" textAlign="center" fontFamily="Arial" toolTip="{_imageSectionLabelTT}"/>
+						<mx:CheckBox label="View Description" id="_imageViewCBox" selected="true" change="customizedAlert()" toolTip="{_ViewLabelTT}"/>
+						<mx:CheckBox label="Original Date" id="_imageDateCBox" selected="true" change="customizedAlert()" toolTip="{_imageDateLabelTT}"/>
+						<mx:CheckBox label="Creator" id="_imageCreatorCBox" selected="true" change="customizedAlert()" toolTip="{_imageCreatorLabelTT}"/>
+						<mx:CheckBox label="Image Source" id="_imageSourceCBox" selected="true" change="customizedAlert()" toolTip="{_imageSourceLabelTT}"/>
+						<mx:Label text="Rights" paddingLeft="25"/>
+						<mx:CheckBox label="Copyright Status" id="_xmpRightsCBox" selected="true" change="customizedAlert()" toolTip="{_xmpRightsLabelTT}" textAlign="left" paddingLeft="25"/>
+						<mx:CheckBox label="Creative Commons" id="_CClicenseCBox" selected="true" change="customizedAlert()" toolTip="{_CClicenseLabelTT}" textAlign="left" paddingLeft="25"/>
+						<mx:CheckBox label="Usage Terms" id="_imageUsageTermsCBox" selected="true" change="customizedAlert()" toolTip="{_imageUsageTermsLabelTT}" textAlign="left" paddingLeft="25"/>
+						<mx:CheckBox label="Copyright Notice" id="_imageRightsStatementCBox" selected="true" change="customizedAlert()" toolTip="{_imageRightsStatementLabelTT}" textAlign="left" paddingLeft="25"/>
+						<mx:CheckBox label="Copyright URL" id="_imageRightsURLCBox" selected="true" change="customizedAlert()" toolTip="{_imageRightsURLLabelTT}" textAlign="left" paddingLeft="25"/>
+						<mx:CheckBox label="Custom 3" id="_custom3CBox" selected="true" change="customizedAlert()" toolTip="{_customLabelTT}"/>
+						<mx:CheckBox label="Custom 4" id="_custom4CBox" selected="true" change="customizedAlert()" toolTip="{_customLabelTT}"/>
+					</mx:VBox>
+					<mx:VBox id="_customizeFormAdmin" width="200" styleName="customizeFormAdmin">
+						<mx:Label text="Administration" color="#525B3F" fontWeight="bold" fontSize="14" textAlign="center" fontFamily="Arial" toolTip="{}"/>
+						<mx:CheckBox label="Collection" id="_adminCollCBox" selected="true" change="customizedAlert()" toolTip="{_adminCollLabelTT}"/>
+						<mx:CheckBox label="Job Identifier" id="_orderIDCBox" selected="true" change="customizedAlert()" toolTip="{_orderIDLabelTT}"/>
+						<mx:CheckBox label="Cataloger" id="_catalogerCBox" selected="true" change="customizedAlert()" toolTip="{_catalogerLabelTT}"/>
+						<mx:CheckBox label="Custom 5" id="_custom5CBox" selected="true" change="customizedAlert()" toolTip="{_customLabelTT}"/>
+						<mx:CheckBox label="Custom 6" id="_custom6CBox" selected="true" change="customizedAlert()" toolTip="{_customLabelTT}"/>
+					</mx:VBox>
+					<mx:VBox id="_customizeFormSummary" width="200" height="95" styleName="customizeFormSummary">
+						<mx:Label text="Summary" color="#606060" fontWeight="bold" fontSize="14" textAlign="center" fontFamily="Arial" toolTip="{}"/>
+						<mx:CheckBox label="Keywords" id="_keywordsCBox" selected="true" change="customizedAlert()" toolTip="{_keywordsLabelTT}"/>
+						<mx:CheckBox label="Description/Caption" id="_captionCBox" selected="true" change="customizedAlert()" toolTip="{_captionLabelTT}"/>
+					</mx:VBox>	
+					<mx:HBox paddingLeft="10" id="hbox34">
+						<mx:Button id="_saveFieldPrefsButton3" height="20" label="OK"
+								   click="updateFieldCheckbox()"
+								   icon="@Embed('../../../target/VRA_1_0/resources/checkBlue_over_16px.png')"
+								   styleName="button1"/>
+						<mx:Button id="_resetFieldsButton2" click="resetFields()" label="Reset" styleName="button1" icon="@Embed('../../../target/VRA_1_0/resources/refresh2_blue_16.png')" height="20" visible="false" includeInLayout="false"/>
+					</mx:HBox>
+				</mx:VBox>
+				<mx:VBox id="vbox3">
+					<mx:VBox id="_customizeFormViews" width="140" height="120" styleName="customizeFormViews">
+						<mx:Label text="Form Views" color="#606060" fontWeight="bold" fontSize="14" textAlign="center" fontFamily="Arial"/>
+						<mx:HBox width="100%" id="hbox26">
+							<mx:CheckBox id="_StateListCBox" change="storeListState()" selected="true" toolTip="{_listStateTT}"/>
+							<mx:HBox width="10" id="hbox28">
+							</mx:HBox>
+							<mx:Image source="@Embed('../../../target/VRA_1_0/resources/listDown_20.png')" toolTip="{_listStateTT}"/>
+						</mx:HBox>
+						<mx:HBox height="10" width="100%"/>
+						<mx:HBox width="100%" id="hbox27">
+							<mx:CheckBox id="_StateAccordionCBox" change="storeListAccordion()" toolTip="{_accordionStateTT}"/>
+							<mx:HBox width="10" id="hbox29">
+							</mx:HBox>
+							<mx:Image source="@Embed('../../../target/VRA_1_0/resources/accordionDown_20.png')" toolTip="{_accordionStateTT}"/>
+						</mx:HBox>
+						<mx:HBox width="100%" height="10">
+						</mx:HBox>
+						<mx:HBox width="100%">
+							<mx:CheckBox id="_StateSideBySideCBox" change="storeListSideBySide()" toolTip="{_sideBySideStateTT}"/>
+							<mx:HBox width="10">
+							</mx:HBox>
+							<mx:Image source="@Embed('../../../target/VRA_1_0/resources/sideBySideDown_20.png')" toolTip="{_sideBySideStateTT}" id="image8"/>
+						</mx:HBox>
+					</mx:VBox>
+					<mx:VBox id="_customizeFormOther" width="140" height="80" styleName="customizeFormViews">
+						
+						<mx:Label text="Other Options" color="#606060" fontWeight="bold" fontSize="14" textAlign="center" fontFamily="Arial"/>
+						<mx:CheckBox id="_toggleToolTips" label="show tips" selected="true" click="toggleToolTips();" toolTip="Uncheck to turn off pop up tips" textAlign="right"/>
+						<mx:CheckBox id="_showSchemas" label="show standards" selected="true" click="toggleSchemaLogos([_CClogo1, _dcLogo1, _dcLogo2, _dcLogo4, _dcLogo5, _dcLogo6, _iptcLogo1, _vraLogo1, _vraLogo2, _vraLogo3, _vraLogo4, _vraLogo5, _vraLogo6, _vraLogo7, _vraLogo8, _vraLogo9, _vraLogo10, _vraLogo11, _vraLogo12, _vraLogo13, _vraLogo14, _vraLogo15, _vraLogo16, _vraLogo17, _vraLogo18, _vraLogo19, _vraLogo20, _vraLogo21, _vraLogo22, _vraLogo23, _vraLogo24, _vraLogo25, _vraLogo26, _vraLogo27, _vraLogo28, _vraLogo29, _vraLogo30, _vraLogo31, _vraLogo32, _vraLogo33, _vraLogo34, _vraLogo35, _vraLogo36, _XMP_photoshop2, _XMP_photoshop2, _XMP_photoshop3, _XMP_Rights1, _XMP_Rights2, _XMP_Rights4])" toolTip="Uncheck to hide schema logos"/>
+					</mx:VBox>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
+		
+		<!-- Work  Metadata -->
+		
+		<mx:VBox id="_workForm" width="100%" minWidth="400" click="getWorkCustomLabels()"
+				 styleName="workOuterBox">
+			
+			<mx:HBox width="100%">
+				<mx:HBox width="50%">
+				</mx:HBox>
+				<mx:Label text="Work" toolTip="{_workSectionLabelTT}" styleName="workSectionLabel"/>
+				<mx:HBox width="50%">
+					<mx:HBox width="100%">
+					</mx:HBox>
+					<mx:Button id="_iptcAlertButton" click="iptcExtAlert()" visible="false" includeInLayout="false"
+							   upSkin="@Embed('../../../target/VRA_1_0/resources/iptcAlertButtonUp.png')"
+							   overSkin="@Embed('../../../target/VRA_1_0/resources/iptcAlertButtonOver.png')"
+							   downSkin="@Embed('../../../target/VRA_1_0/resources/iptcAlertButtonDown.png')"/>
+				</mx:HBox>
+			</mx:HBox>
+			
+			<!-- Work Creator 'vrae' namespace -->
+			<mx:HBox id="_workAgentHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Creator" width="105" toolTip="{_workAgentLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workAgent" styleName="textInput" 
+									toolTip="{_workAgentTT}" 
+									xmpPath="vrae:work.agent" xmpType="Text"/>
+				<mx:Image id="_vraLogo1" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<mx:VBox id="_workTitleVBox" styleName="workFieldBox" width="100%">
+				<mx:HBox id="_vraWorkTitleHBox" width="100%">
+					<mx:Label text="Title" toolTip="{_workTitleLabelTT}" width="105" textAlign="right" id="label22" color="#655F2D"/>
+					<fi:XMPTextInputMRU id="_workTitle" styleName="textInput" 
+										toolTip="{_workTitleTT}"
+										xmpPath="vrae:work.title" xmpType="Text"/>
+					<mx:Image id="_vraLogo2" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+				</mx:HBox>
+				<mx:HBox id="_copyDcTitleHBox" width="100%">
+					<mx:HBox width="105">
+					</mx:HBox>
+					<mx:Button id="_CopyDcTbutton" click="ManualcopydcTitleToAO()" styleName="button2"
+							   toolTip="Copy the Dublin Core Title to the Artwork Title">
+						<mx:icon>@Embed(source='../../../target/VRA_1_0/resources/pencil_3_12px.png')</mx:icon>
+					</mx:Button>
+					</mx:HBox>
+			</mx:VBox>
+			
+			<!-- Image View 'vra' namespace-->
+			<mx:HBox id="_workViewHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="View Description" width="105" toolTip="{_ViewLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workTitleView" styleName="textInput" 
+									change="syncImageTitle2()" toolTip="{_ViewTT}" 
+									xmpPath="vrae:image.title" xmpType="Text"/>
+				<mx:Image id="_vraLogo3" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Date 'vra' namespace-->
+			<mx:HBox id="_workDateHBox" styleName="workFieldBox" width="100%">
+				<mx:Label text="Date" toolTip="{_workVraDateLabelTT}" styleName="workFieldLabel" id="label23" width="105"/>
+				<fi:XMPTextInputMRU id="_workVraDate" styleName="textInput" 
+									toolTip="{_workVraDateTT}" 
+									xmpPath="vrae:work.date" xmpType="Text"/>
+				<mx:Image id="_vraLogo4" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Style/Period 'vra' namespace-->
+			<mx:HBox id="_workStylePeriodHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Style/Period" width="105" toolTip="{_workStylePeriodLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workStylePeriod" styleName="textInput" 
+									toolTip="{_workStylePeriodTT}" 
+									xmpPath="vrae:work.stylePeriod" xmpType="Text"/>
+				<mx:Image id="_vraLogo5" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Culture 'vra' namespace-->
+			<mx:HBox id="_workCultureHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Culture" width="105" toolTip="{_workCultureLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workCulture" styleName="textInput" 
+									toolTip="{_workCultureTT}" 
+									xmpPath="vrae:work.culturalContext" xmpType="Text"/>
+				<mx:Image id="_vraLogo6" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Work Type 'vra' namespace-->
+			<mx:HBox id="_workWorkTypeHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Work Type" width="105" toolTip="{_workWorkTypeLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workWorkType" styleName="textInput" 
+									toolTip="{_workWorkTypeTT}" 
+									xmpPath="vrae:work.worktype" xmpType="Text"/>
+				<mx:Image id="_vraLogo7" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Materials 'vra' namespace-->
+			<mx:HBox id="_workMaterialHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Material" width="105" toolTip="{_workMaterialLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workMaterial" styleName="textInput" 
+									toolTip="{_workMaterialTT}" 
+									xmpPath="vrae:work.material" xmpType="Text"/>
+				<mx:Image id="_vraLogo8" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Techniques 'vra' namespace-->
+			<mx:HBox id="_workTechniqueHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Technique" width="105" toolTip="{_workTechniqueLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workTechnique" styleName="textInput" 
+									toolTip="{_workTechniqueTT}" 
+									xmpPath="vrae:work.technique" xmpType="Text"/>
+				<mx:Image id="_vraLogo9" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Measurements 'vra' namespace-->
+			<mx:HBox id="_workMeasurementsHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Measurements" width="105" toolTip="{_workMeasurementsLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workMeasurements" styleName="textInput" 
+									toolTip="{_workMeasurementsTT}" 
+									xmpPath="vrae:work.measurements" xmpType="Text"/>
+				<mx:Image id="_vraLogo10" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Locations -->
+			<mx:HBox id="_workLocsHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Location" toolTip="{_workLocLabelTT}" width="65" styleName="workFieldLabel"/>
+				<mx:VBox width="100%" styleName="clearGroupBox">
+					<!-- Work Repository'vra' namespace-->
+					<mx:HBox id="_workRepositoryHBox" width="100%" styleName="workFieldBox">
+						<mx:Label text="Repository" width="80" toolTip="{_workLocRepLabelTT}" styleName="workFieldLabel"/>		
+						<fi:XMPTextInputMRU id="_workLocRep" styleName="textInput" 
+											toolTip="{_workLocRepTT}" 
+											xmpPath="vrae:work.locationRepository" xmpType="Text"/>
+						<mx:Image id="_vraLogo11" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>
+					<!-- Work Site 'vra' namespace-->
+					<mx:HBox id="_workLocSiteHBox" width="100%" styleName="workFieldBox">
+						<mx:Label text="Site" toolTip="{_workLocSiteLabelTT}" width="80" styleName="workFieldLabel"/>
+						<fi:XMPTextInputMRU id="_workLocSite" styleName="textInput" 
+											toolTip="{_workLocSiteTT}" 
+											xmpPath="vrae:work.locationSite" xmpType="Text"/>
+						<mx:Image id="_vraLogo12" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>	
+					
+					<mx:HBox id="_copyfromCoreLoc2WHBox" click="copyIptcCoreLocS()" width="100%">
+						<mx:HBox width="100%">
+							<mx:HBox width="80" id="hbox33">
+							</mx:HBox>
+							<mx:Button id="_copyfromCoreLoc2W" toolTip="Copies data from the the Location fields in the legacy IPTC Core panel." styleName="button2">
+								<mx:icon>@Embed(source='../../../target/VRA_1_0/resources/pencil_3_12px.png')</mx:icon>
+							</mx:Button>
+						</mx:HBox>
+					</mx:HBox>
+					
+					<!-- Work Creation Location 'vra' namespace-->
+					<mx:HBox id="_workLocCreatHBox" width="100%" styleName="workFieldBox">
+						<mx:Label text="Creation" toolTip="{_workLocCreatLabelTT}" width="80" styleName="workFieldLabel" id="_workLocCreatlabel"/>
+						<fi:XMPTextInputMRU id="_workLocCreat" styleName="textInput" 
+											toolTip="{_workLocCreatTT}" 
+											xmpPath="vrae:work.locationCreation" xmpType="Text"/>
+						<mx:Image id="_vraLogo33" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>
+					
+					<!-- Work Discovery Location 'vra' namespace-->
+					<mx:HBox id="_workLocDiscHBox" width="100%" styleName="workFieldBox">
+						<mx:Label text="Discovery" toolTip="{_workLocDiscLabelTT}" width="80" styleName="workFieldLabel" id="_workLocDisclabel"/>
+						<fi:XMPTextInputMRU id="_workLocDisc" styleName="textInput" 
+											toolTip="{_workLocDiscTT}" 
+											xmpPath="vrae:work.locationDiscovery" xmpType="Text"/>
+						<mx:Image id="_vraLogo13" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>	
+					
+					<!-- Work Exhibition Location 'vra' namespace-->
+					<mx:HBox id="_workLocExhibHBox" width="100%" styleName="workFieldBox">
+						<mx:Label text="Exhibition" width="80" styleName="workFieldLabel" toolTip="{_workLocExhibLabelTT}" id="workLocExhiblabel"/>
+						<fi:XMPTextInputMRU id="_workLocExhib" styleName="textInput" 
+											toolTip="{_workLocExhibTT}" 
+											xmpPath="vrae:work.locationExhibition" xmpType="Text"/>
+						<mx:Image id="_vraLogo14" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>
+					
+					<!-- Work Installation Location 'vra' namespace-->
+					<mx:HBox id="_workLocInstalHBox" width="100%" styleName="workFieldBox">
+						<mx:Label text="Installation" toolTip="{_workLocInstalLabelTT}" width="80" styleName="workFieldLabel" id="workLocInstallabel"/>
+						<fi:XMPTextInputMRU id="_workLocInstal" styleName="textInput" 
+											toolTip="{_workLocInstalTT}" 
+											xmpPath="vrae:work.locationInstallation" xmpType="Text"/>
+						<mx:Image id="_vraLogo27" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>
+					
+					<!-- Work Performance Location 'vra' namespace-->
+					<mx:HBox id="_workLocPerfHBox" width="100%" styleName="workFieldBox">
+						<mx:Label text="Performance" toolTip="{_workLocPerfLabelTT}" styleName="workFieldLabel" id="workLocPerflabel" width="80"/>
+						<fi:XMPTextInputMRU id="_workLocPerf" styleName="textInput" 
+											toolTip="{_workLocPerfTT}" 
+											xmpPath="vrae:work.locationPerformance" xmpType="Text"/>
+						<mx:Image id="_vraLogo28" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>
+					
+					<!-- Work Other Location 'vra' namespace-->
+					<mx:HBox id="_workLocOtherHBox" width="100%" styleName="workFieldBox">
+						<mx:Label id="_workLocOtherlabel" text="Other" toolTip="{_workLocOtherLabelTT}" width="80" styleName="workFieldLabel"/>
+						<fi:XMPTextInputMRU id="_workLocOther" styleName="textInput" 
+											toolTip="{_workLocOtherTT}" 
+											xmpPath="vrae:work.locationOther" xmpType="Text"/>
+						<mx:Image id="_vraLogo29" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>
+					
+					<!-- Work Location Notes 'vra' namespace-->
+					<mx:HBox id="_workLocNotesHBox" width="100%" styleName="workFieldBox">
+						<mx:Label id="_workLocNoteslabel" text="Notes" toolTip="{_workLocNotesLabelTT}" width="80" styleName="workFieldLabel"/>
+						<fi:XMPTextInputMRU id="_workLocNotes" styleName="textInput" 
+											xmpPath="vrae:work.locationNotes" xmpType="Text"/>
+						<mx:Image id="_vraLogo34" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:HBox>
+			
+			<!-- Work ID-->
+			<mx:HBox id="_workRefidHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Work ID" width="105" toolTip="{_workRefidLabelTT}" styleName="workFieldLabel"/>
+				<fi:XMPTextInputMRU id="_workRefid" styleName="textInput" toolTip="{_workRefidTT}" 
+									xmpPath="vrae:work.refid" xmpType="Text"/>
+				<mx:Image id="_vraLogo36" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Rights-->
+			<mx:HBox id="_workRightsStatementHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Rights" width="105" toolTip="{_workRightsStatementLabelTT}" styleName="workFieldLabel"/>
+				<fi:XMPTextInputMRU id="_workRightsStatement" styleName="textInput" toolTip="{_workRightsStatementTT}" 
+									xmpPath="vrae:work.rights" xmpType="Text"/>
+				<mx:Image id="_vraLogo15" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Description 'vra' namespace-->
+			<mx:HBox id="_workDescriptionHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Description" width="105" toolTip="{_workDescriptionLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextAreaMRU id="_workDescription" styleName="textInput" toolTip="{_workDescriptionTT}" 
+								   xmpPath="vrae:work.description" xmpType="Text" width="100%" height="20"/>
+				<mx:Image id="_vraLogo16" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Subject 'vra' namespace-->
+			<mx:HBox id="_workSubjectHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Subject" width="105" styleName="workFieldLabel" toolTip="{_workSubjectLabelTT}"/>
+				<fi:XMPTextInputMRU id="_workSubject" styleName="textInput" 
+									toolTip="{_workSubjectTT}" 
+									xmpPath="vrae:work.subject" xmpType="Text"/>
+				<mx:Image id="_vraLogo17" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Inscription 'vra' namespace-->
+			<mx:HBox id="_workInscriptionHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Inscription" width="105" styleName="workFieldLabel" toolTip="{_workInscriptionLabelTT}"/>
+				<fi:XMPTextInputMRU id="_workInscription" styleName="textInput" toolTip="{_workInscriptionTT}" 
+									xmpPath="vrae:work.inscription" xmpType="Text"/>
+				<mx:Image id="_vraLogo35" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Relation 'vra' namespace-->
+			<mx:HBox id="_workRelationHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Relation" width="105" toolTip="{_workRelationLabelTT}" styleName="workFieldLabel"/>
+				<fi:XMPTextInputMRU id="_workRelation" styleName="textInput" 
+									toolTip="{_workRelationTT}" 
+									xmpPath="vrae:work.relation" xmpType="Text"/>
+				<mx:Image id="_vraLogo18" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Text Reference 'vra' namespace-->
+			<mx:HBox id="_workTextRefHBox" width="100%" styleName="workFieldBox">
+				<mx:Label text="Text Reference" width="105" toolTip="{_workTextRefLabelTT}" styleName="workFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_workTextRef" styleName="textInput" toolTip="{_workTextRefTT}" 
+									xmpPath="vrae:work.textref" xmpType="Text"/>
+				<mx:Image id="_vraLogo19" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Work Info Source 'vra' namespace-->
+			<mx:HBox id="_workSourceHBox" width="100%" styleName="workFieldBox">
+				<mx:Label id="_workSourceLabel" text="Info Source" textAlign="right" toolTip="{_workSourceLabelTT}" width="105" color="#655F2D"/>
+				<fi:XMPTextInputMRU id="_workSource" styleName="textInput" toolTip="{_workSourceTT}" 
+									xmpPath="vrae:work.source" xmpType="Text"/>
+				<mx:Image id="_vraLogo30" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- User definable properties -->
+			<mx:VBox id="_custom1VBox" width="100%" styleName="workFieldBox">
+				<mx:HBox id="_custom1HBox" width="100%">
+					<mx:Label width="105" styleName="workFieldLabel"
+							  text="Custom 1 Label" textAlign="center" toolTip="{_customLabelTT}"/>
+					<mx:Label width="103" styleName="workFieldLabel" text=" Data"
+							  textAlign="left" toolTip="{_customLabelDataTT}"/>
+				</mx:HBox>
+				<mx:HBox id="_custom1HBox2" width="100%">
+					<fi:XMPTextInputMRU id="_custom1Label" width="105" textAlign="center" styleName="textInput" toolTip="{_custom1LabelTT}" 
+										xmpPath="vrae:custom1/vrae:_label" xmpType="Text"/>
+					<fi:XMPTextInputMRU id="_custom1" styleName="textInput" 
+										xmpPath="vrae:custom1/vrae:data" xmpType="Text"/>
+					<mx:Image id="_vraLogo20" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoGrey_20.png')" toolTip="VRA Core 4.0 property"/>
+				</mx:HBox>
+			</mx:VBox>
+			
+			<mx:VBox id="_custom2VBox" width="100%" styleName="workFieldBox">
+				<mx:HBox id="_custom2HBox" width="100%">
+					<mx:Label width="105" styleName="workFieldLabel"
+							  text="Custom 2 Label" textAlign="center" toolTip="{_customLabelTT}"/>
+					<mx:Label width="103" styleName="workFieldLabel" text=" Data"
+							  textAlign="left" toolTip="{_customLabelDataTT}"/>
+				</mx:HBox>
+				<mx:HBox id="_custom2HBox2" width="100%">
+					<fi:XMPTextInputMRU id="_custom2Label" width="105" textAlign="center" styleName="textInput" toolTip="{_custom2LabelTT}"
+										xmpPath="vrae:custom2/vrae:_label" xmpType="Text"/>
+					<fi:XMPTextInputMRU id="_custom2" styleName="textInput" 
+										xmpPath="vrae:custom2/vrae:data" xmpType="Text"/>
+					<mx:Image id="_vraLogo21" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoGrey_20.png')" toolTip="VRA Core 4.0 property"/>
+				</mx:HBox>
+			</mx:VBox>	
+		</mx:VBox>
+		
+		<!-- Image Metadata. All elements describe an "Image" (the digital surrogate for a built or created object).-->
+		<mx:VBox id="_imageForm" click="getImageCustomLabels()" width="100%" styleName="imageOuterBox">
+			
+			<mx:HBox width="100%">
+				<mx:HBox width="50%">
+				</mx:HBox>
+				<mx:Label id="_imageSectionLabel" text="Image" toolTip="{_imageSectionLabelTT}" styleName="imageSectionLabel"/>
+				<mx:Spacer/>
+				<mx:HBox width="50%">
+				</mx:HBox>
+			</mx:HBox>
+			
+			<!-- Image View Description. 'vra-4.0/' namespace -->
+			<mx:HBox id="_imageViewHBox" width="100%" styleName="imageFieldBox">
+				<mx:Label text="View Description" width="105" toolTip="{_ViewLabelTT}" id="label39" styleName="imageFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_imageView" styleName="textInput" 
+									change="syncImageTitle1()" toolTip="{_ViewTT}" 
+									xmpPath="vrae:image.title" xmpType="Text"/>
+				<mx:Image id="_vraLogo22" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Image Date 'photoshop' namespace -->
+			<mx:HBox id="_imageDateHBox" width="100%" styleName="imageFieldBox">
+				<mx:Label text="Original Date" width="105" toolTip="{_imageDateLabelTT}" id="label38" styleName="imageFieldLabel"/>		
+				<fi:XMPDateField id="_imageDate" width="160" styleName="textInput" toolTip="{_imageDateTT}" 
+								 xmpPath="photoshop:DateCreated"/>
+				<mx:HBox width="100%" height="20">
+				</mx:HBox>
+				<mx:Image id="_iptcLogo1" source="@Embed('../../../target/VRA_1_0/resources/iptc_sv_outline_20X20.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Image)&#13;  'Date Created'&#13;Origin&#13;  'Date Created'"/>	
+			</mx:HBox>
+			
+			<!-- Image Creator 'dc' namespace -->
+			<mx:HBox id="_imageCreatorHBox" width="100%" styleName="imageFieldBox">
+				<mx:Label text="Creator" width="105" toolTip="{_imageCreatorLabelTT}" id="label37" styleName="imageFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_imageCreator" styleName="textInput" toolTip="{_imageCreatorTT}" 
+									xmpPath="dc:creator" xmpType="Text" xmpArray="seq"/>
+				<mx:Image id="_dcLogo2" source="@Embed('../../../target/VRA_1_0/resources/dcLight_20.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Contact)&#13;  'Creator'&#13;Description&#13;  'Author'&#13;Mobile SWF&#13;  'Author'"/>			
+				<mx:Image id="_shareable1" source="@Embed('../../../target/VRA_1_0/resources/cameraShare3LtGrey.png')" toolTip="{_shareableMetadataTT}"/>
+			</mx:HBox>
+			
+			<!-- Image Source 'vrae' Image -->
+			<mx:HBox id="_imageSourceHBox" width="100%" styleName="imageFieldBox">
+				<mx:Label text="Image Source" toolTip="{_imageSourceLabelTT}" width="105" id="label34" styleName="imageFieldLabel"/>
+				<fi:XMPTextInputMRU id="_imageSource" styleName="textInput" toolTip="{_imageSourceTT}" 
+									xmpPath="vrae:image.source" xmpType="Text"/>
+				<mx:Image id="_vraLogo32" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoLight_20.png')" toolTip="VRA Core 4.0 property"/>
+			</mx:HBox>
+			
+			<!-- Image Rights --> 
+			<mx:HBox id="_imageRightsHBox" width="100%" styleName="imageFieldBox">
+				<mx:Label text="Rights" width="65" toolTip="{_imageRightsSecLabelLabelTT}" styleName="imageFieldLabel"/>		
+				<mx:VBox width="100%" styleName="clearGroupBox">
+					<mx:HBox id="_xmpRightsHBox" width="100%" styleName="imageInnerBox">
+						<mx:Label text="Copyright Status" width="115" toolTip="{_xmpRightsLabelTT}" id="label15" styleName="imageFieldLabel"/>
+						<mx:VBox>
+							<fi:XMPComboBox id="_xmpRights" width="131"
+											dataProvider="{_xmpRightsValues}" styleName="comboBox"
+											toolTip="{_xmpRightsTT}" xmpPath="xmpRights:Marked"/>
+						</mx:VBox>
+						<mx:HBox width="100%">
+						</mx:HBox>
+						<mx:Image id="_XMP_Rights1" source="@Embed('../../../target/VRA_1_0/resources/XMP_Rights.png')" toolTip="Shared with this Adobe File Info panel:&#13;Description&#13;  'Copyright Status'"/>
+					</mx:HBox>
+					
+					<mx:HBox id="_CClicenseHBox" width="100%" styleName="imageInnerBox">
+						<mx:VBox height="100%">
+							<mx:Label id="_CClicenseLabel" text="Creative Commons" toolTip="{_CClicenseLabelTT}" width="115" styleName="imageFieldLabel"/>
+							<mx:Label id="_CClicenseURLLabel" text="CC license URL" width="115" styleName="imageFieldLabel"/>
+						</mx:VBox>
+						<mx:VBox width="100%" verticalGap="0">
+							<fi:XMPComboBox id="_CClicense" width="250" change="syncCCrights()"
+											dataProvider="{_CClicenseValues}" styleName="comboBox"
+											writeEmptyValues="false" xmpPath="cc:license"/>
+							<fi:XMPText id="_CClicenseURL" xmpPath="cc:license" textAlign="left" width="100%" paddingTop="2"/>
+						</mx:VBox>
+						<mx:Image id="_CClogo1" source="@Embed('../../../target/VRA_1_0/resources/cc_light_20.png')" toolTip="Creative Commons property"/>
+					</mx:HBox>
+					
+					<mx:HBox id="_imageRightsURLHBox" width="100%" styleName="imageInnerBox">
+						<mx:Label text="Copyright URL" toolTip="{_imageRightsURLLabelTT}" width="115" id="label16" styleName="imageFieldLabel"/>
+						<fi:XMPTextInputMRU id="_imageRightsURL" styleName="textInput" toolTip="{_imageRightsURLTT}" 
+											xmpPath="xmpRights:WebStatement" xmpType="Text"/>
+						<mx:Image id="_XMP_Rights2" source="@Embed('../../../target/VRA_1_0/resources/XMP_Rights.png')" toolTip="Shared with this Adobe File Info panel:&#13;Description&#13;  'Copyright Info URL'&#13;Mobile SWF&#13;  'Copyright Info URL'"/>
+					</mx:HBox>
+					
+					<mx:HBox id="_imageUsageTermsHBox" width="100%" styleName="imageInnerBox">
+						<mx:VBox height="100%">
+							<mx:Label text="Usage Terms" toolTip="{_imageUsageTermsLabelTT}" width="115" id="label33" styleName="imageFieldLabel"/>
+							<mx:HBox width="100%">
+								<mx:HBox width="100%" height="20">
+								</mx:HBox>
+								<mx:Button id="_ccStatement" click="insertCCStement()" includeInLayout="false" visible="false"
+										   upSkin="@Embed('../../../target/VRA_1_0/resources/addCCup.png')"
+										   overSkin="@Embed('../../../target/VRA_1_0/resources/addCCover.png')"
+										   downSkin="@Embed('../../../target/VRA_1_0/resources/addCCdown.png')" textAlign="center"/>
+							</mx:HBox>	
+						</mx:VBox>
+						<fi:XMPTextAreaMRU id="_imageUsageTerms" styleName="textInput" toolTip="{_imageUsageTermsTT}" 
+										   xmpPath="xmpRights:UsageTerms" xmpType="Localized"/>
+						<mx:Image id="_XMP_Rights4" source="@Embed('../../../target/VRA_1_0/resources/XMP_Rights.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Status)&#13;  'Copyright Notice'&#13;Description&#13;  'Copyright Notice'&#13;Mobile SWF&#13;  'Copyright Notice'"/>
+					</mx:HBox>
+					
+					<mx:HBox id="_imageRightsStatementHBox" width="100%" styleName="imageInnerBox">
+						<mx:VBox height="100%">
+							<mx:Label text="Copyright Notice" toolTip="{_imageRightsStatementLabelTT}" width="115" id="label14" styleName="imageFieldLabel"/>
+							<mx:HBox width="100%">
+								<mx:HBox width="66"/>
+								<mx:Button id="_insertCircleC" click="imageCircleC()"
+										   upSkin="@Embed('../../../target/VRA_1_0/resources/insertCopyrightUp.png')"
+										   overSkin="@Embed('../../../target/VRA_1_0/resources/insertCopyrightDown.png')"
+										   downSkin="@Embed('../../../target/VRA_1_0/resources/insertCopyrightOver.png')"/>
+							</mx:HBox>
+						</mx:VBox>
+						<fi:XMPTextAreaMRU id="_imageRightsStatement" styleName="textInput" toolTip="{_imageRightsStatementTT}" 
+										   xmpPath="dc:rights" xmpType="Localized"/>
+						<mx:VBox>
+							<mx:Image id="_dcLogo4" source="@Embed('../../../target/VRA_1_0/resources/dcLight_20.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Status)&#13;  'Copyright Notice'&#13;Description&#13;  'Copyright Notice'&#13;Mobile SWF&#13;  'Copyright Notice'"/>
+							<mx:Image id="_shareable2" source="@Embed('../../../target/VRA_1_0/resources/cameraShare3LtGrey.png')" toolTip="{_shareableMetadataTT}"/>							
+						</mx:VBox>
+					</mx:HBox>	
+				</mx:VBox>
+			</mx:HBox>	
+			
+			<!-- User definable properties -->
+			<mx:VBox id="_custom3VBox" width="100%" styleName="imageFieldBox">
+				<mx:HBox width="100%" id="custom3HBox">
+					<mx:Label width="105" styleName="imageFieldLabel"
+							  text="Custom 3 Label" textAlign="center" toolTip="{_customLabelTT}"/>
+					<mx:Label width="103" styleName="imageFieldLabel" text=" Data"
+							  textAlign="left" toolTip="{_customLabelDataTT}"/>
+				</mx:HBox>
+				<mx:HBox id="_custom3HBox2" width="100%">
+					<fi:XMPTextInputMRU id="_custom3Label" width="105" textAlign="center" styleName="textInput" toolTip="{_workCustom3LabelTT}" 
+										xmpPath="vrae:custom3/vrae:_label" xmpType="Text"/>
+					<fi:XMPTextInputMRU id="_custom3" styleName="textInput" 
+										xmpPath="vrae:custom3/vrae:data" xmpType="Text"/>
+					<mx:Image id="_vraLogo23" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoGrey_20.png')" toolTip="VRA Core 4.0 property"/>
+				</mx:HBox>
+			</mx:VBox>
+			
+			<mx:VBox id="_custom4VBox" width="100%" styleName="imageFieldBox">
+				<mx:HBox width="100%" id="custom4HBox">
+					<mx:Label width="105" styleName="imageFieldLabel"
+							  text="Custom 4 Label" textAlign="center" toolTip="{_customLabelTT}"/>
+					<mx:Label width="103" styleName="imageFieldLabel" text=" Data"
+							  textAlign="left" toolTip="{_customLabelDataTT}"/>
+				</mx:HBox>
+				<mx:HBox width="100%" id="custom4HBox2">
+					<fi:XMPTextInputMRU id="_custom4Label" width="105" textAlign="center" styleName="textInput" toolTip="{_workCustom4LabelTT}" 
+										xmpPath="vrae:custom4/vrae:_label" xmpType="Text"/>
+					<fi:XMPTextInputMRU id="_custom4" styleName="textInput" 
+										xmpPath="vrae:custom4/vrae:data" xmpType="Text"/>
+					<mx:Image id="_vraLogo24" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoGrey_20.png')" toolTip="VRA Core 4.0 property"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:VBox>	
+		
+		<!-- Administrative Metadata. Used for local production tracking. -->
+		
+		<mx:VBox id="_adminForm" width="100%" click="getAdminCustomLabels()" styleName="adminOuterBox">
+			
+			<mx:HBox width="100%" verticalAlign="middle" borderStyle="none">
+				<mx:HBox width="50%">
+				</mx:HBox>
+				<mx:Label text="Administration" toolTip="{_adminSectionLabelTT)" styleName="adminSectionLabel"/>
+				<mx:Spacer/>
+				<mx:HBox width="50%">
+				</mx:HBox>
+			</mx:HBox>
+			
+			<!-- Collection -->
+			<mx:HBox id="_adminCollHBox" width="100%" styleName="adminFieldBox">
+				<mx:Label text="Collection" width="105" styleName="adminFieldLabel" toolTip="The name of the provider of this image.  This might be an institution or an individual and may be different from the image creator or the name(s) in the Copyright Statement." id="label36" color="#525B3F"/>
+				<fi:XMPTextInputMRU id="_adminColl" styleName="textInput" toolTip="{_adminCollTT}" 
+									xmpPath="dc:publisher" xmpType="Text" xmpArray="bag"/>
+				<mx:Image id="_vraLogo31" source="@Embed('../../../target/VRA_1_0/resources/dcLight_20.png')" toolTip="Dublin Core property"/>
+			</mx:HBox>
+			
+			<!-- Admin Image Job Identifier. 'photoshop' namespace -->
+			<mx:HBox id="_orderIDHBox" width="100%" styleName="adminFieldBox">
+				<mx:Label text="Job Identifier" width="105" toolTip="{_orderIDLabelTT}" styleName="adminFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_orderID" styleName="textInput" toolTip="{_orderIDTT}" 
+									xmpPath="photoshop:TransmissionReference" xmpType="Text"/>
+				<mx:Image id="_XMP_photoshop3" source="@Embed('../../../target/VRA_1_0/resources/XMP_photoshop.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Status)&#13;  'Job Identifier'&#13;Origin&#13;  'Transmission Reference'"/>
+			</mx:HBox>
+			
+			<!-- Admin Image Cataloger. 'photoshop' namespace -->
+			<mx:HBox id="_catalogerHBox" width="100%" styleName="adminFieldBox">
+				<mx:Label text="Cataloger" width="105" toolTip="{_catalogerLabelTT}" styleName="adminFieldLabel"/>		
+				<fi:XMPTextInputMRU id="_cataloger" styleName="textInput" toolTip="{_catalogerTT}" 
+									xmpPath="photoshop:CaptionWriter" xmpType="Text"/>
+				<mx:Image id="_XMP_photoshop2" source="@Embed('../../../target/VRA_1_0/resources/XMP_photoshop.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Content)&#13;  'Description Writer'&#13;Description&#13;  'Description Writer'"/>
+			</mx:HBox>
+			
+			<!-- User definable properties -->
+			<mx:VBox id="_custom5VBox" width="100%" styleName="adminFieldBox">
+				<mx:HBox width="100%" id="custom5HBox">
+					<mx:Label width="105" styleName="adminFieldLabel"
+							  text="Custom 5 Label" textAlign="center" toolTip="{_customLabelTT}"/>
+					<mx:Label width="103" styleName="adminFieldLabel" text=" Data"
+							  textAlign="left" toolTip="{_customLabelDataTT}"/>
+				</mx:HBox>
+				<mx:HBox id="_custom5HBox2" width="100%">
+					<fi:XMPTextInputMRU id="_custom5Label" width="105" textAlign="center" styleName="textInput" 
+										toolTip="{_workCustom5LabelTT}" 
+										xmpPath="vrae:custom5/vrae:_label" xmpType="Text"/>
+					<fi:XMPTextInputMRU id="_custom5" styleName="textInput" 
+										xmpPath="vrae:custom5/vrae:data" xmpType="Text"/>
+					<mx:Image id="_vraLogo25" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoGrey_20.png')" toolTip="VRA Core 4.0 property"/>
+				</mx:HBox>
+			</mx:VBox>
+			
+			<mx:VBox id="_custom6VBox" width="100%" styleName="adminFieldBox">
+				<mx:HBox width="100%" id="custom6HBox">
+					<mx:Label width="105" styleName="adminFieldLabel"
+							  text="Custom 6 Label" textAlign="center" toolTip="{_customLabelTT}"/>
+					<mx:Label width="103" styleName="adminFieldLabel" text=" Data"
+							  textAlign="left" toolTip="{_customLabelDataTT}"/>
+				</mx:HBox>
+				<mx:HBox id="_custom6HBox2" width="100%">
+					<fi:XMPTextInputMRU id="_custom6Label" width="105" textAlign="center" styleName="textInput" toolTip="{_workCustom6LabelTT}" 
+										xmpPath="vrae:custom6/vrae:_label" xmpType="Text"/>
+					<fi:XMPTextInputMRU id="_custom6" styleName="textInput" xmpPath="vrae:custom6/vrae:data" xmpType="Text" paddingLeft="2" borderStyle="none"/>
+					<mx:Image id="_vraLogo26" source="@Embed('../../../target/VRA_1_0/resources/VRAlogoGrey_20.png')" toolTip="VRA Core 4.0 property"/>
+				</mx:HBox>
+			</mx:VBox>				
+		</mx:VBox>
+		
+		<!-- Summary Metadata. Used for display in common photo tools. -->
+		<mx:VBox id="_summaryForm" width="100%" styleName="summaryOuterBox">
+			
+			<mx:HBox width="100%" verticalAlign="middle" borderStyle="none">
+				<mx:HBox width="50%">
+				</mx:HBox>
+				<mx:Label text="Summary" toolTip="{_summarySectionLabelTT}" styleName="summarySectionLabel"/>
+				<mx:Spacer id="spacer2"/>
+				<mx:HBox width="50%" id="hbox19">
+					<mx:Button id="_fillAllButton" label="Fill All" click="fillAll()" toolTip="{_allFillButtonTT}" buttonMode="true">
+						<mx:icon>@Embed(source='../../../target/VRA_1_0/resources/pencil_3_12px.png')</mx:icon>
+					</mx:Button>
+					<mx:Label id="_clearAllButton" paddingLeft="5" paddingTop="2"
+							  styleName="instructionLabel" text="clear all" click="clearAll()" textAlign="left"/>
+					<mx:Spacer width="50%" height="10"/>
+				</mx:HBox>								
+			</mx:HBox>
+			
+			<!-- Title. 'dc' namespace -->
+			<mx:HBox id="_dcTitleHBox" width="100%" styleName="summaryFieldBox">
+				<mx:VBox id="_dcTitleVBox" width="100%" styleName="clearGroupBox">
+					<mx:HBox id="_dcTitleHBox2" width="100%">
+						<mx:Label width="115" styleName="summaryFieldLabel" text="DC Title"
+								  toolTip="{_dcTitleLabelTT}"/>
+						<fi:XMPTextInputMRU id="_dcTitle" styleName="textInput" toolTip="{_dcTitleTT}"  
+											xmpPath="dc:title" xmpType="Localized"/>
+				
+					</mx:HBox>
+					<mx:HBox width="100%" paddingLeft="116">
+						<mx:Button id="_titleFillAppendButton" label="Fill" click="fillTitle()" toolTip="{_titleAppendFillButtonTT}" buttonMode="true">
+							<mx:icon>@Embed(source='../../../target/VRA_1_0/resources/pencil_3_12px.png')</mx:icon>
+						</mx:Button>
+						<mx:Label id="_clearTitleButton" paddingLeft="5" paddingTop="2"
+								  styleName="instructionLabel" text="clear" click="clearTitle()" textAlign="left"/>
+					</mx:HBox>										
+				</mx:VBox>
+				<mx:VBox>
+					<mx:Image id="_dcLogo1" source="@Embed('../../../target/VRA_1_0/resources/dcLight_20.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Status)&#13; 'Title'&#13;Description&#13; 'Title'&#13;Mobile SWF&#13; 'Document Title'"/>													
+					<mx:Image id="_shareable3" source="@Embed('../../../target/VRA_1_0/resources/cameraShare3LtGrey.png')" toolTip="{_shareableMetadataTT}"/>					
+				</mx:VBox>	
+			</mx:HBox>
+			<!-- Caption. 'dc' namespace -->
+			<mx:VBox id="_captionVBox" width="100%" styleName="summaryFieldBox">
+				<mx:HBox width="100%">
+					<mx:Label text="Description/Caption" width="115" toolTip="{_captionLabelTT}" styleName="summaryFieldLabel"/>
+					<fi:XMPTextAreaMRU id="_caption" height="80" styleName="textInput" toolTip="{_captionTT}" 
+									   xmpPath="dc:description" xmpType="Localized"/>
+					<mx:VBox>
+						<mx:Image id="_dcLogo6"
+								  source="@Embed('../../../target/VRA_1_0/resources/dcLight_20.png')"
+								  toolTip="Shared with these Adobe File Info panels:&#xd;IPTC (Content)&#xd;  'Description'&#xd;Description&#xd;  'Description'&#xd;Mobile SWF&#xd;  'Description'"/>
+										
+						<mx:Image id="_shareable4" source="@Embed('../../../target/VRA_1_0/resources/cameraShare3LtGrey.png')" toolTip="{_shareableMetadataTT}"/>
+					</mx:VBox>
+				</mx:HBox>
+				
+				<mx:HBox width="100%" paddingLeft="116">
+					<mx:Button id="_captionFillAppendButton" label="Fill" click="fillCaption()" toolTip="{_captionFillAppendButtonTT}" buttonMode="true">
+						<mx:icon>@Embed(source='../../../target/VRA_1_0/resources/pencil_3_12px.png')</mx:icon>
+					</mx:Button>
+					<mx:Label id="_clearCaptionButton" paddingLeft="5" paddingTop="2"
+							  styleName="instructionLabel" text="clear" click="clearCaption()" textAlign="left"/>
+				</mx:HBox>
+			</mx:VBox>
+
+			<!-- Keywords. 'dc' namespace -->
+			<mx:VBox id="_keywordsVBox" width="100%" styleName="summaryFieldBox">
+				<mx:HBox width="100%">
+					<mx:Label text="Keywords" width="115" toolTip="{_keywordsLabelTT}" styleName="summaryFieldLabel"/>
+					<fi:XMPTextAreaMRU id="_keywords" height="80" styleName="textInput" toolTip="{_keywordsTT}" 
+									   xmpPath="dc:subject" xmpType="Text" xmpArray="bag"/>
+					<mx:VBox>
+						<mx:Image id="_dcLogo5" source="@Embed('../../../target/VRA_1_0/resources/dcLight_20.png')" toolTip="Shared with these Adobe File Info panels:&#13;IPTC (Content)&#13;  'Keywords'&#13;Description&#13;  'Keywords'"/>
+						<mx:Image id="_shareable5" source="@Embed('../../../target/VRA_1_0/resources/cameraShare3LtGrey.png')" toolTip="{_shareableMetadataTT}"/>						
+					</mx:VBox>
+				</mx:HBox>
+				
+				<mx:HBox width="100%" paddingLeft="116">
+					<mx:Button id="_keywordsAppendFillButton" label="Fill" click="fillKeywords()" toolTip="{_keywordsAppendFillButtonTT}" buttonMode="true">
+						<mx:icon>@Embed(source='../../../target/VRA_1_0/resources/pencil_3_12px.png')</mx:icon>
+					</mx:Button>
+					<mx:Label id="_clearKeywordsButton" paddingLeft="5" paddingTop="2"
+							  styleName="instructionLabel" text="clear" click="clearKeywords()" textAlign="left"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:VBox>
+		
+		<mx:HBox id="_footer" width="100%">
+			<mx:HBox width="10">
+			</mx:HBox>
+			<mx:Label text="panel user guide" styleName="instructionLabel"/>
+			<mx:Image source="@Embed('../../../target/VRA_1_0/resources/info_blue1_20.png')" click="navigateToURL(new URLRequest('http://metadatadeluxe.pbworks.com/w/file/fetch/41003330/VRA_user_guide_0985.pdf'))" toolTip="go to:&#13; http://metadatadeluxe.pbworks.com/f/VRA_user_guide.pdf/" buttonMode="true" />
+			
+			<mx:HBox width="100%" id="hbox30"/>
+			<mx:Label id="label9"  text="standards used:" styleName="instructionLabel"/>
+			<mx:Image source="@Embed('../../../target/VRA_1_0/resources/VRAlogo30.png')" click="navigateToURL(new URLRequest('http://www.vraweb.org/projects/vracore4/index.html'))" toolTip="go to:&#13; vraweb.org/projects/vracore4/index.html" buttonMode="true" id="image3"/>
+			<mx:Image source="@Embed('../../../target/VRA_1_0/resources/iptc_sv_outline_35x35.jpg')" click="navigateToURL(new URLRequest('http://www.iptc.org/cms/site/index.html?channel=CH0089'))" toolTip="go to:&#13; iptc.org/cms/site/index.html?channel=CH0089" buttonMode="true" id="image1"/>
+			<mx:Image source="@Embed('../../../target/VRA_1_0/resources/XMP_30.png')" click="navigateToURL(new URLRequest('http://www.adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/XMPSpecificationPart2.pdf'))" toolTip="go to:&#13; adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/XMPSpecificationPart2.pdf" buttonMode="true" id="image4"/>
+			<mx:Image source="@Embed('../../../target/VRA_1_0/resources/cc.png')" click="navigateToURL(new URLRequest('http://wiki.creativecommons.org/XMP'))" toolTip="go to:&#13; wiki.creativecommons.org/XMP" buttonMode="true" id="image5"/>
+			<mx:Image source="@Embed('../../../target/VRA_1_0/resources/dc_30.png')" click="navigateToURL(new URLRequest('http://www.adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/XMPSpecificationPart1.pdf'))" toolTip="go to:&#13; adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/XMPSpecificationPart1.pdf" buttonMode="true" id="image6"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			private function xmpWriteHandler( event: XMPEvent ): void
+			{
+				// If vrae:custom1 data exists, set _custom1Label.text
+				if (_custom1.text.length > 0 && _custom1.text != "(Multiple Values)" && _custom1Label.text != "(Multiple Values)")
+				{
+					xmpAccess.setProperty("vrae:custom1/vrae:_label", _custom1Label.text, 0);
+				}
+				// If vrae:custom1 is empty, delete _custom1Label.text
+				if (_custom1.text == "")
+				{
+					xmpAccess.deleteProperty("vrae:custom1/vrae:_label");
+				}
+				
+				// If vrae:custom2 data exists, set _custom2Label.text
+				if (_custom2.text.length > 0 && _custom2.text != "(Multiple Values)" && _custom2Label.text != "(Multiple Values)")
+				{
+					xmpAccess.setProperty("vrae:custom2/vrae:_label", _custom2Label.text, 0);
+				}
+				// If vrae:custom2 is empty, delete _custom2Label.text
+				if (_custom2.text == "")
+				{
+					xmpAccess.deleteProperty("vrae:custom2/vrae:_label");
+				}
+				
+				// If vrae:custom3 data exists, set _custom3Label.text
+				if (_custom3.text.length > 0 && _custom3.text != "(Multiple Values)" && _custom3Label.text != "(Multiple Values)")
+				{
+					xmpAccess.setProperty("vrae:custom3/vrae:_label", _custom3Label.text, 0);
+				}
+				// If vrae:custom3 is empty, delete _custom3Label.text
+				if (_custom3.text == "")
+				{
+					xmpAccess.deleteProperty("vrae:custom3/vrae:_label");
+				}
+				
+				// If vrae:custom4 data exists, set _custom4Label.text
+				if (_custom4.text.length > 0 && _custom4.text != "(Multiple Values)" && _custom4Label.text != "(Multiple Values)")
+				{
+					xmpAccess.setProperty("vrae:custom4/vrae:_label", _custom4Label.text, 0);
+				}
+				// If vrae:custom4 is empty, delete _custom4Label.text
+				if (_custom4.text == "")
+				{
+					xmpAccess.deleteProperty("vrae:custom4/vrae:_label");
+				}
+				
+				// If vrae:custom5 data exists, set _custom5Label.text
+				if (_custom5.text.length > 0 && _custom5.text != "(Multiple Values)" && _custom5Label.text != "(Multiple Values)")
+				{
+					xmpAccess.setProperty("vrae:custom5/vrae:_label", _custom5Label.text, 0);
+				}
+				// If vrae:custom5 is empty, delete _custom5Label.text
+				if (_custom5.text == "")
+				{
+					xmpAccess.deleteProperty("vrae:custom5/vrae:_label");
+				}
+				
+				// If vrae:custom6 data exists, set _custom6Label.text
+				if (_custom6.text.length > 0 && _custom6.text != "(Multiple Values)" && _custom6Label.text != "(Multiple Values)")
+				{
+					xmpAccess.setProperty("vrae:custom6/vrae:_label", _custom6Label.text, 0);
+				}
+				// If vrae:custom6 is empty, delete _custom6Label.text
+				if (_custom6.text == "")
+				{
+					xmpAccess.deleteProperty("vrae:custom6/vrae:_label");
+				}
+				
+				if ( this.xmpModification )
+					
+					//Store state preference to C:\Documents and Settings\[user name]\Local Settings\Application Data\Adobe\XMP\File Info\3.0\work
+					var xml_list:XMLList = new XMLList();
+				{
+					trace (this.currentState)
+					xml_list +=<currentState>{this.currentState}</currentState>;
+					trace (ToolTipManager.enabled)//Store ToolTipManager toggle preference
+					xml_list +=<ToolTipManager.enabled>{ToolTipManager.enabled}</ToolTipManager.enabled>;
+					trace (_showSchemas.selected)//Store toggle tool tips check box preference
+					xml_list +=<_showSchemas.selected>{_showSchemas.selected}</_showSchemas.selected>;
+					trace (_fieldsSaved.selected)
+					xml_list +=<_fieldsSaved.selected>{_fieldsSaved.selected}</_fieldsSaved.selected>;
+					trace (_StateListCBox.selected)
+					xml_list +=<_StateListCBox.selected>{_StateListCBox.selected}</_StateListCBox.selected>
+					trace (_StateAccordionCBox.selected)
+					xml_list +=<_StateAccordionCBox.selected>{_StateAccordionCBox.selected}</_StateAccordionCBox.selected>
+					trace (_StateSideBySideCBox.selected)
+					xml_list +=<_StateSideBySideCBox.selected>{_StateSideBySideCBox.selected}</_StateSideBySideCBox.selected>
+					trace (_workAgentCBox.selected)
+					xml_list +=<_workAgentCBox.selected>{_workAgentCBox.selected}</_workAgentCBox.selected>;
+					trace (_workTitleCBox.selected)
+					xml_list +=<_workTitleCBox.selected>{_workTitleCBox.selected}</_workTitleCBox.selected>;
+					trace (_dcTitleCBox.selected)
+					xml_list +=<_dcTitleCBox.selected>{_dcTitleCBox.selected}</_dcTitleCBox.selected>;
+					trace (_workViewCBox.selected)
+					xml_list +=<_workViewCBox.selected>{_workViewCBox.selected}</_workViewCBox.selected>;
+					trace (_workDateCBox.selected)
+					xml_list +=<_workDateCBox.selected>{_workDateCBox.selected}</_workDateCBox.selected>;
+					trace (_workStylePeriodCBox.selected)
+					xml_list +=<_workStylePeriodCBox.selected>{_workStylePeriodCBox.selected}</_workStylePeriodCBox.selected>;
+					trace (_workCultureCBox.selected)
+					xml_list +=<_workCultureCBox.selected>{_workCultureCBox.selected}</_workCultureCBox.selected>;
+					trace (_workWorkTypeCBox.selected)
+					xml_list +=<_workWorkTypeCBox.selected>{_workWorkTypeCBox.selected}</_workWorkTypeCBox.selected>;
+					trace (_workMaterialCBox.selected)
+					xml_list +=<_workMaterialCBox.selected>{_workMaterialCBox.selected}</_workMaterialCBox.selected>;
+					trace (_workTechniqueCBox.selected)
+					xml_list +=<_workTechniqueCBox.selected>{_workTechniqueCBox.selected}</_workTechniqueCBox.selected>;
+					trace (_workMeasurementsCBox.selected)
+					xml_list +=<_workMeasurementsCBox.selected>{_workMeasurementsCBox.selected}</_workMeasurementsCBox.selected>;
+					trace (_workRepositoryCBox.selected)
+					xml_list +=<_workRepositoryCBox.selected>{_workRepositoryCBox.selected}</_workRepositoryCBox.selected>;
+					trace (_workLocSiteCBox.selected)
+					xml_list +=<_workLocSiteCBox.selected>{_workLocSiteCBox.selected}</_workLocSiteCBox.selected>;					
+					trace (_workLocCreatCBox.selected)
+					xml_list +=<_workLocCreatCBox.selected>{_workLocCreatCBox.selected}</_workLocCreatCBox.selected>;				
+					trace (_workLocDiscCBox.selected)
+					xml_list +=<_workLocDiscCBox.selected>{_workLocDiscCBox.selected}</_workLocDiscCBox.selected>;
+					trace (_workLocExhibCBox.selected)
+					xml_list +=<_workLocExhibCBox.selected>{_workLocExhibCBox.selected}</_workLocExhibCBox.selected>;
+					trace (_workLocInstalCBox.selected)
+					xml_list +=<_workLocInstalCBox.selected>{_workLocInstalCBox.selected}</_workLocInstalCBox.selected>;
+					trace (_workLocPerfCBox.selected)
+					xml_list +=<_workLocPerfCBox.selected>{_workLocPerfCBox.selected}</_workLocPerfCBox.selected>;
+					trace (_workLocOtherCBox.selected)
+					xml_list +=<_workLocOtherCBox.selected>{_workLocOtherCBox.selected}</_workLocOtherCBox.selected>;				
+					trace (_workLocNotesCBox.selected)
+					xml_list +=<_workLocNotesCBox.selected>{_workLocNotesCBox.selected}</_workLocNotesCBox.selected>;					
+					trace (_workRefidCBox.selected)
+					xml_list +=<_workRefidCBox.selected>{_workRefidCBox.selected}</_workRefidCBox.selected>;
+					trace (_workRightsStatementCBox.selected)
+					xml_list +=<_workRightsStatementCBox.selected>{_workRightsStatementCBox.selected}</_workRightsStatementCBox.selected>;
+					trace (_workDescriptionCBox.selected)
+					xml_list +=<_workDescriptionCBox.selected>{_workDescriptionCBox.selected}</_workDescriptionCBox.selected>;
+					trace (_workSubjectCBox.selected)
+					xml_list +=<_workSubjectCBox.selected>{_workSubjectCBox.selected}</_workSubjectCBox.selected>;				
+					trace (_workInscriptionCBox.selected)
+					xml_list +=<_workInscriptionCBox.selected>{_workInscriptionCBox.selected}</_workInscriptionCBox.selected>;				
+					trace (_workRelationCBox.selected)
+					xml_list +=<_workRelationCBox.selected>{_workRelationCBox.selected}</_workRelationCBox.selected>;
+					trace (_workTextRefCBox.selected)
+					xml_list +=<_workTextRefCBox.selected>{_workTextRefCBox.selected}</_workTextRefCBox.selected>;
+					trace (_custom1CBox.selected)
+					xml_list +=<_custom1CBox.selected>{_custom1CBox.selected}</_custom1CBox.selected>;
+					trace (_custom2CBox.selected)
+					xml_list +=<_custom2CBox.selected>{_custom2CBox.selected}</_custom2CBox.selected>;
+					trace (_imageViewCBox.selected)
+					xml_list +=<_imageViewCBox.selected>{_imageViewCBox.selected}</_imageViewCBox.selected>;
+					trace (_imageDateCBox.selected)
+					xml_list +=<_imageDateCBox.selected>{_imageDateCBox.selected}</_imageDateCBox.selected>;
+					trace (_imageCreatorCBox.selected)
+					xml_list +=<_imageCreatorCBox.selected>{_imageCreatorCBox.selected}</_imageCreatorCBox.selected>;
+					trace (_workSourceCBox.selected)
+					xml_list +=<_workSourceCBox.selected>{_workSourceCBox.selected}</_workSourceCBox.selected>;
+					trace (_adminCollCBox.selected)
+					xml_list +=<_adminCollCBox.selected>{_adminCollCBox.selected}</_adminCollCBox.selected>;
+					trace (_imageSourceCBox.selected)
+					xml_list +=<_imageSourceCBox.selected>{_imageSourceCBox.selected}</_imageSourceCBox.selected>;
+					trace (_xmpRightsCBox.selected)
+					xml_list +=<_xmpRightsCBox.selected>{_xmpRightsCBox.selected}</_xmpRightsCBox.selected>;
+					trace (_CClicenseCBox.selected)
+					xml_list +=<_CClicenseCBox.selected>{_CClicenseCBox.selected}</_CClicenseCBox.selected>;
+					trace (_imageUsageTermsCBox.selected)
+					xml_list +=<_imageUsageTermsCBox.selected>{_imageUsageTermsCBox.selected}</_imageUsageTermsCBox.selected>;
+					trace (_imageRightsStatementCBox.selected)
+					xml_list +=<_imageRightsStatementCBox.selected>{_imageRightsStatementCBox.selected}</_imageRightsStatementCBox.selected>;
+					trace (_imageRightsURLCBox.selected)
+					xml_list +=<_imageRightsURLCBox.selected>{_imageRightsURLCBox.selected}</_imageRightsURLCBox.selected>;
+					trace (_custom3CBox.selected)
+					xml_list +=<_custom3CBox.selected>{_custom3CBox.selected}</_custom3CBox.selected>;
+					trace (_custom4CBox.selected)
+					xml_list +=<_custom4CBox.selected>{_custom4CBox.selected}</_custom4CBox.selected>;
+					trace (_catalogerCBox.selected)
+					xml_list +=<_catalogerCBox.selected>{_catalogerCBox.selected}</_catalogerCBox.selected>;
+					trace (_orderIDCBox.selected)
+					xml_list +=<_orderIDCBox.selected>{_orderIDCBox.selected}</_orderIDCBox.selected>;
+					trace (_custom5CBox.selected)
+					xml_list +=<_custom5CBox.selected>{_custom5CBox.selected}</_custom5CBox.selected>;
+					trace (_custom6CBox.selected)
+					xml_list +=<_custom6CBox.selected>{_custom6CBox.selected}</_custom6CBox.selected>;
+					trace (_keywordsCBox.selected)
+					xml_list +=<_keywordsCBox.selected>{_keywordsCBox.selected}</_keywordsCBox.selected>;
+					trace (_captionCBox.selected)
+					xml_list +=<_captionCBox.selected>{_captionCBox.selected}</_captionCBox.selected>;
+					trace (_custom1Label.text)
+					xml_list +=<_custom1Label.text>{_custom1Label.text}</_custom1Label.text>;
+					trace (_custom2Label.text)
+					xml_list +=<_custom2Label.text>{_custom2Label.text}</_custom2Label.text>;
+					trace (_custom3Label.text)
+					xml_list +=<_custom3Label.text>{_custom3Label.text}</_custom3Label.text>;
+					trace (_custom4Label.text)
+					xml_list +=<_custom4Label.text>{_custom4Label.text}</_custom4Label.text>;
+					trace (_custom5Label.text)
+					xml_list +=<_custom5Label.text>{_custom5Label.text}</_custom5Label.text>;
+					trace (_custom6Label.text)
+					xml_list +=<_custom6Label.text>{_custom6Label.text}</_custom6Label.text>;		
+					panelDescription.prefs = xml_list;	
+				}
+			}			
+		]]>
+	</mx:Script>
+	
+</fi:XMPForm>

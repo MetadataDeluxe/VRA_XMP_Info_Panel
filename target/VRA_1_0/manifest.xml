@@ -1,0 +1,15 @@
+<xfi:fileinfo xmlns:xfi="http://ns.adobe.com/xmp/fileinfo/">
+	<xfi:panels>
+		<xfi:panel
+			name = "VRA_1_0"
+			label = "VRA"
+			type = "custom"
+			panelLibrary = "VRA_1_0"
+			panelClass = "examples.panels.VRA_1_0"
+			visible="true"
+			modifyDate = "2013-11-16Z"
+			localizationFile = "VRA_1_0"
+			description = "Custom info panel using display elements from the VRA Core 4.0 schema and select elements from the IPTC schema">
+		</xfi:panel>
+	</xfi:panels>
+</xfi:fileinfo>
